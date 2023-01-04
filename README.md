@@ -165,6 +165,20 @@ class OpenDataPolicy(BasePolicy):
             raise Forbidden()
 ```
 
+## Usage
+If everything is set up correctly, you can use the ```apply_policies``` decorator as follows:
+```python
+from app import policy_factory
+from flask import request
+from inuits_policy_based_auth.authorization.context import Context
+
+
+class Entity():
+    @policy_factory.apply_policies(Context("read:entity", request))
+    def get(self):
+        ...
+```
+
 ## Bugs and Feature requests
 **Warning!**
 
