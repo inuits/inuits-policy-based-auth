@@ -167,6 +167,7 @@ class OpenDataPolicy(BasePolicy):
 
 ## Bugs and Feature requests
 **Warning!**
+
 This package is in early stages of development and will require a few more iterations to be considered stable. As of right now, the PolicyFactory cannot handle conflicting policies, which may result in unauthorized access.
 
 ## Contributing
