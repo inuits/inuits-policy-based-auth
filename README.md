@@ -9,12 +9,12 @@ pip install inuits-policy-based-auth
 
 ## Getting Started
 In your app, instantiate the PolicyFactory by passing the Authenticator and a logger as arguments. For example, in app.py (all examples given are based on a Python Flask app).
-```
+```python
 policy_factory = PolicyFactory(Authenticator(), logger)
 ```
 ### Manually loading policies
 Importing and registering policies can be done manually.
-```
+```python
 from inuits_policy_based_auth.authentication.strategies.token_strategy.authlib_flask_oauth2_strategy import AuthlibFlaskOauth2Strategy
 from inuits_policy_based_auth.authorization.policies.super_admin_policy import SuperAdminPolicy
 
@@ -28,7 +28,7 @@ However, it is strongly recommended to load policies dynamically as this will al
 You can write a loader which can load policies dynamically based on a configuration file.
 
 Example configuration file:
-```
+```json
 {
   "[app_name]": {
     "name": "[app_name]",
@@ -49,7 +49,7 @@ Example configuration file:
 ```
 
 Example loader.py:
-```
+```python
 import os
 import util
 
@@ -126,7 +126,7 @@ def __get_module_class(app, *, authentication_strategy=None, policy=None):
 ```
 
 Now you can import the loader in app.py and pass ```policy_factory``` as an argument to it.
-```
+```python
 load_policies(policy_factory)
 ```
 As you can see in these examples, dynamically loading policies will allow you to add new policies and override existing ones, which makes this package highly customizable and generic.
@@ -150,7 +150,7 @@ api
 ```
 
 Example custom open_data_policy.py:
-```
+```python
 from inuits_policy_based_auth.authorization.base_policy import BasePolicy
 from werkzeug.exceptions import Forbidden
 
