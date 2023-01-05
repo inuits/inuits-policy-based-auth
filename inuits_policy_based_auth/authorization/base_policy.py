@@ -1,10 +1,10 @@
 from abc import ABC, abstractmethod
 from inuits_policy_based_auth.authentication.authenticator import Authenticator
 from inuits_policy_based_auth.authorization.context import Context
-from inuits_policy_based_auth.user_auth_data import UserAuthData
-from inuits_policy_based_auth.inuits_policy_based_auth_exceptions import (
+from inuits_policy_based_auth.exceptions import (
     AuthenticateMethodDidNotReturnObjectOfTypeUserAuthData,
 )
+from inuits_policy_based_auth.user_auth_data import UserAuthData
 
 
 class BasePolicy(ABC):
