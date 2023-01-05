@@ -10,6 +10,9 @@ pip install inuits-policy-based-auth
 ## Getting Started
 In your app, instantiate the PolicyFactory by passing the Authenticator and a logger as arguments. For example, in app.py (all examples given are based on a Python Flask app).
 ```python
+from inuits_policy_based_auth import Authenticator, PolicyFactory
+
+
 policy_factory = PolicyFactory(Authenticator(), logger)
 ```
 ### Manually loading policies
