@@ -15,6 +15,12 @@ from werkzeug.exceptions import Unauthorized
 
 
 class AuthlibFlaskOauth2Strategy(Strategy):
+    """
+    This class is a concrete implementation of an authentication strategy.
+
+    This strategy uses Authlib Flask OAuth2 to do token-based authentication.
+    """
+
     def __init__(
         self,
         logger,

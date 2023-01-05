@@ -4,6 +4,10 @@ from werkzeug.exceptions import Forbidden
 
 
 class OpenDataPolicy(BasePolicy):
+    """
+    A policy that allows every GET-request.
+    """
+
     def authenticate(self, authenticator, context):
         return UserAuthData(auth_object=None)
 

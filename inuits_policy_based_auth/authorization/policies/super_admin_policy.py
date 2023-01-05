@@ -3,6 +3,10 @@ from werkzeug.exceptions import Forbidden
 
 
 class SuperAdminPolicy(BasePolicy):
+    """
+    A policy that allows an authenticated user to do anything when he/she has the role 'role_super_admin'.
+    """
+
     def authenticate(self, authenticator, context):
         return authenticator.authenticate()
 

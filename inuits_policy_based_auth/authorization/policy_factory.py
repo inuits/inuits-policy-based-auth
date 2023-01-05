@@ -13,7 +13,40 @@ from werkzeug.exceptions import Unauthorized, Forbidden
 
 
 class PolicyFactory:
+    """
+    A class used to apply policies.
+
+    Attributes
+    ----------
+    _authenticator : Authenticator
+        the authenticator used to authenticate a user
+    _logger : Unknown
+        a logger to log information
+    _user_auth_data : UserAuthData
+        an object containing data about the authenticated user
+    _policies : list[BasePolicy]
+        a list of policies to apply
+
+    Methods
+    -------
+    get_user_auth_data()
+        returns an object of type UserAuthData
+    register(policy)
+        appends a policy to the list of policies to be applied
+    apply_policies(context)
+        applies the policies to determine access
+    """
+
     def __init__(self, authenticator: Authenticator, logger):
+        """
+        Parameters
+        ----------
+        authenticator : Authenticator
+            the authenticator used to authenticate a user
+        logger : Unknown
+            a logger to log information
+        """
+
         self._authenticator = authenticator
         self._logger = logger
         self._user_auth_data = None
@@ -28,14 +61,61 @@ class PolicyFactory:
         return self._logger
 
     def get_user_auth_data(self) -> UserAuthData:
+        """Returns an object of type UserAuthData.
+
+        Returns
+        -------
+        UserAuthData
+            an object containing data about the authenticated user
+
+        Raises
+        ------
+        NoUserAuthDataException
+            if there is no user auth data
+        """
+
         if not self._user_auth_data:
             raise NoUserAuthDataException()
         return self._user_auth_data
 
     def register(self, policy: BasePolicy):
+        """Appends a policy to the list of policies to be applied.
+
+        Parameters
+        ----------
+        policy : BasePolicy
+            a policy to be applied
+        """
+
         self._policies.append(policy)
 
     def apply_policies(self, context: Context):
+        """Applies the policies to determine access.
+
+        The first succeeding policy will stop execution and provide access.
+
+        Parameters
+        ----------
+        context : Context
+            an object containing data about the context of a request
+
+        Returns
+        -------
+        function
+            a decorator to decorate endpoints with
+
+        Raises
+        ------
+        NoStrategySetForAuthenticatorException
+            if no strategy is set for the authenticator
+        NoPoliciesToApplyException
+            if the policies list is empty
+        Unauthorized
+            if a user is not authenticated
+        Forbidden
+            if a user is not authorized
+        """
+
         def decorator(decorated_function):
             @functools.wraps(decorated_function)
             def decorated_function_wrapper(*args, **kwargs):
