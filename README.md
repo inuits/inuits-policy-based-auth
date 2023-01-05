@@ -43,8 +43,8 @@ Example configuration file:
     "security": {
       "authentication_strategy": "token_strategy.authlib_flask_oauth2_strategy",
       "policies": [
-        "open_data_policy",
-        "super_admin_policy"
+        "super_admin_policy",
+        "open_data_policy"
       ]
     }
   }
