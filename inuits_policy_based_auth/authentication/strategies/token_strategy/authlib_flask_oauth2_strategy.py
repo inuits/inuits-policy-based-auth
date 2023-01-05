@@ -56,7 +56,7 @@ class AuthlibFlaskOauth2Strategy(Strategy):
         try:
             token = self._resource_protector.acquire_token()
             user_auth_data = UserAuthData(auth_object=token)
-            flattened_token = user_auth_data.flatten_auth_data(token)
+            flattened_token = user_auth_data.flatten_auth_object(token)
 
             user_auth_data.email = flattened_token.get("email", "")
             user_auth_data.roles = flattened_token.get(

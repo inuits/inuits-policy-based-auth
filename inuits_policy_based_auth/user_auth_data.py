@@ -18,8 +18,8 @@ class UserAuthData:
 
     Methods
     -------
-    flatten_auth_data(data, parent_key)
-        flattens the auth data to be a dict of one level deep
+    flatten_auth_object(data, parent_key)
+        flattens the auth object to be a dict of one level deep
     """
 
     def __init__(self, *, auth_object):
@@ -59,16 +59,16 @@ class UserAuthData:
     def permissions(self):
         return self._permissions
 
-    def __flatten_auth_data_generator(self, data: MutableMapping, parent_key):
+    def __flatten_auth_object_generator(self, data: MutableMapping, parent_key):
         for key, value in data.items():
             flattened_key = parent_key + "." + key if parent_key else key
             if isinstance(value, MutableMapping):
-                yield from self.flatten_auth_data(value, flattened_key).items()
+                yield from self.flatten_auth_object(value, flattened_key).items()
             else:
                 yield flattened_key, value
 
-    def flatten_auth_data(self, data: MutableMapping, parent_key=""):
-        """Flattens the auth data to be a dict of one level deep.
+    def flatten_auth_object(self, data: MutableMapping, parent_key=""):
+        """Flattens the auth object to be a dict of one level deep.
 
         Parameters
         ----------
@@ -80,7 +80,7 @@ class UserAuthData:
         Returns
         -------
         dict[Unknown, Unknown]
-            the flattened auth data
+            the flattened auth object
         """
 
-        return dict(self.__flatten_auth_data_generator(data, parent_key))
+        return dict(self.__flatten_auth_object_generator(data, parent_key))
