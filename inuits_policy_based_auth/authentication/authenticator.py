@@ -1,5 +1,5 @@
-from inuits_policy_based_auth import UserAuthData
 from inuits_policy_based_auth.authentication.strategy import Strategy
+from inuits_policy_based_auth.authentication.user_auth_data import UserAuthData
 
 
 class Authenticator:
