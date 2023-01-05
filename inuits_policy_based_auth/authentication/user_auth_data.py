@@ -13,8 +13,8 @@ class UserAuthData:
         the email of the authenticated user
     _roles : list[str]
         the roles of the authenticated user
-    _permissions : list[str]
-        the permissions of the authenticated user
+    _scopes : list[str]
+        the scopes of the authenticated user
 
     Methods
     -------
@@ -33,7 +33,7 @@ class UserAuthData:
         self._auth_object = auth_object
         self._email = ""
         self._roles = []
-        self._permissions = []
+        self._scopes = []
 
     @property
     def auth_object(self):
@@ -56,8 +56,8 @@ class UserAuthData:
         self._roles = roles
 
     @property
-    def permissions(self):
-        return self._permissions
+    def scopes(self):
+        return self._scopes
 
     def __flatten_auth_object_generator(self, data: MutableMapping, parent_key):
         for key, value in data.items():

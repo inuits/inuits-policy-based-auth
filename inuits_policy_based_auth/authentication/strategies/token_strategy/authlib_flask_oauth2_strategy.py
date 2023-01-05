@@ -65,7 +65,7 @@ class AuthlibFlaskOauth2Strategy(Strategy):
             if self._role_permission_mapping:
                 for role in user_auth_data.roles:
                     try:
-                        user_auth_data.permissions.extend(
+                        user_auth_data.scopes.extend(
                             self._role_permission_mapping[role]
                         )
                     except KeyError:
