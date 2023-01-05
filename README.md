@@ -54,8 +54,8 @@ import os
 import util
 
 from importlib import import_module
-from inuits_policy_based_auth.authorization.policy_factory import PolicyFactory
-from inuits_policy_based_auth.inuits_policy_based_auth_exceptions import (
+from inuits_policy_based_auth import PolicyFactory
+from inuits_policy_based_auth.exceptions import (
     PolicyFactoryException,
 )
 
@@ -151,7 +151,7 @@ api
 
 Example custom open_data_policy.py:
 ```python
-from inuits_policy_based_auth.authorization.base_policy import BasePolicy
+from inuits_policy_based_auth import BasePolicy
 from werkzeug.exceptions import Forbidden
 
 
@@ -170,7 +170,7 @@ If everything is set up correctly, you can use the ```apply_policies``` decorato
 ```python
 from app import policy_factory
 from flask import request
-from inuits_policy_based_auth.authorization.context import Context
+from inuits_policy_based_auth import Context
 
 
 class Entity():
