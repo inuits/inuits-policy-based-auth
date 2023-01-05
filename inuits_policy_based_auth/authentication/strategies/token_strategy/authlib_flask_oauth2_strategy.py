@@ -10,7 +10,7 @@ from authlib.oauth2.rfc6750 import BearerTokenValidator
 from authlib.oauth2.rfc7523 import JWTBearerToken
 from datetime import datetime
 from inuits_policy_based_auth.authentication.strategy import Strategy
-from inuits_policy_based_auth.user_auth_data import UserAuthData
+from inuits_policy_based_auth.authentication.user_auth_data import UserAuthData
 from werkzeug.exceptions import Unauthorized
 
 
