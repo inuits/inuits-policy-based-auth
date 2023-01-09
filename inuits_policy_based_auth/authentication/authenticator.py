@@ -1,5 +1,5 @@
 from inuits_policy_based_auth.authentication.strategy import Strategy
-from inuits_policy_based_auth.user_auth_data import UserAuthData
+from inuits_policy_based_auth.contexts.user_context import UserContext
 
 
 class Authenticator:
@@ -31,12 +31,12 @@ class Authenticator:
     def strategy(self, strategy: Strategy):
         self._strategy = strategy
 
-    def authenticate(self) -> UserAuthData:
+    def authenticate(self) -> UserContext:
         """Calls the authenticate method of a given strategy.
 
         Returns
         -------
-        UserAuthData
+        UserContext
             an object containing data about the authenticated user
         """
 

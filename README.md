@@ -162,7 +162,7 @@ class OpenDataPolicy(BasePolicy):
     def authenticate(self, authenticator, request_context):
         return authenticator.authenticate()
 
-    def authorize(self, user_auth_data, request_context):
+    def authorize(self, user_context, request_context):
         request = request_context.http_request
         if request.method != "GET":
             raise Forbidden()

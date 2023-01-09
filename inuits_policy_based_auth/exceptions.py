@@ -17,10 +17,10 @@ class NoPoliciesToApplyException(PolicyFactoryException):
         )
 
 
-class NoUserAuthDataException(PolicyFactoryException):
+class NoUserContextException(PolicyFactoryException):
     def __init__(self):
         super().__init__(
-            "Cannot get an object of type UserAuthData when no policies were applied."
+            "Cannot get an object of type UserContext when no policies were applied."
         )
 
 
@@ -28,8 +28,8 @@ class PolicyException(Exception):
     pass
 
 
-class AuthenticateMethodDidNotReturnObjectOfTypeUserAuthData(PolicyException):
+class AuthenticateMethodDidNotReturnObjectOfTypeUserContext(PolicyException):
     def __init__(self):
         super().__init__(
-            "The authenticate method of a policy or an authentication strategy did not return an object of type UserAuthData."
+            "The authenticate method of a policy or an authentication strategy did not return an object of type UserContext."
         )

@@ -3,12 +3,12 @@ import functools
 from inuits_policy_based_auth.authentication.authenticator import Authenticator
 from inuits_policy_based_auth.authorization.base_policy import BasePolicy
 from inuits_policy_based_auth.contexts.request_context import RequestContext
+from inuits_policy_based_auth.contexts.user_context import UserContext
 from inuits_policy_based_auth.exceptions import (
     NoStrategySetForAuthenticatorException,
     NoPoliciesToApplyException,
-    NoUserAuthDataException,
+    NoUserContextException,
 )
-from inuits_policy_based_auth.user_auth_data import UserAuthData
 from werkzeug.exceptions import Unauthorized, Forbidden
 
 
@@ -22,15 +22,15 @@ class PolicyFactory:
         the authenticator used to authenticate a user
     _logger : Unknown
         a logger to log information
-    _user_auth_data : UserAuthData
+    _user_context : UserContext
         an object containing data about the authenticated user
     _policies : list[BasePolicy]
         a list of policies to apply
 
     Methods
     -------
-    get_user_auth_data()
-        returns an object of type UserAuthData
+    get_user_context()
+        returns an object of type UserContext
     register(policy)
         appends a policy to the list of policies to be applied
     apply_policies(request_context)
@@ -49,7 +49,7 @@ class PolicyFactory:
 
         self._authenticator = authenticator
         self._logger = logger
-        self._user_auth_data = None
+        self._user_context = None
         self._policies: list[BasePolicy] = []
 
     @property
@@ -60,23 +60,23 @@ class PolicyFactory:
     def logger(self):
         return self._logger
 
-    def get_user_auth_data(self) -> UserAuthData:
-        """Returns an object of type UserAuthData.
+    def get_user_context(self) -> UserContext:
+        """Returns an object of type UserContext.
 
         Returns
         -------
-        UserAuthData
+        UserContext
             an object containing data about the authenticated user
 
         Raises
         ------
-        NoUserAuthDataException
+        NoUserContextException
             if there is no user auth data
         """
 
-        if not self._user_auth_data:
-            raise NoUserAuthDataException()
-        return self._user_auth_data
+        if not self._user_context:
+            raise NoUserContextException()
+        return self._user_context
 
     def register(self, policy: BasePolicy):
         """Appends a policy to the list of policies to be applied.
@@ -127,7 +127,7 @@ class PolicyFactory:
                 raised_error = None
                 for policy in self._policies:
                     try:
-                        self._user_auth_data = policy.apply(
+                        self._user_context = policy.apply(
                             self._authenticator, request_context
                         )
                         return decorated_function(*args, **kwargs)

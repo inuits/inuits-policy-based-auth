@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from inuits_policy_based_auth.user_auth_data import UserAuthData
+from inuits_policy_based_auth.contexts.user_context import UserContext
 
 
 class Strategy(ABC):
@@ -13,12 +13,12 @@ class Strategy(ABC):
     """
 
     @abstractmethod
-    def authenticate(self) -> UserAuthData:
+    def authenticate(self) -> UserContext:
         """Authenticates a user.
 
         Returns
         -------
-        UserAuthData
+        UserContext
             an object containing data about the authenticated user
 
         Raises

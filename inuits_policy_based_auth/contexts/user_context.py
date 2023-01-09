@@ -1,7 +1,7 @@
 from collections.abc import MutableMapping
 
 
-class UserAuthData:
+class UserContext:
     """
     A class containing data about the authenticated user.
 

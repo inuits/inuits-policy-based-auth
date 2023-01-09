@@ -10,7 +10,7 @@ from authlib.oauth2.rfc6750 import BearerTokenValidator
 from authlib.oauth2.rfc7523 import JWTBearerToken
 from datetime import datetime
 from inuits_policy_based_auth.authentication.strategy import Strategy
-from inuits_policy_based_auth.user_auth_data import UserAuthData
+from inuits_policy_based_auth.contexts.user_context import UserContext
 from werkzeug.exceptions import Unauthorized
 
 
@@ -55,23 +55,21 @@ class AuthlibFlaskOauth2Strategy(Strategy):
     def authenticate(self):
         try:
             token = self._resource_protector.acquire_token()
-            user_auth_data = UserAuthData(auth_object=token)
-            flattened_token = user_auth_data.flatten_auth_object(token)
+            user_context = UserContext(auth_object=token)
+            flattened_token = user_context.flatten_auth_object(token)
 
-            user_auth_data.email = flattened_token.get("email", "")
-            user_auth_data.roles = flattened_token.get(
+            user_context.email = flattened_token.get("email", "")
+            user_context.roles = flattened_token.get(
                 f"resource_access.{token['azp']}.roles", []
             )
             if self._role_permission_mapping:
-                for role in user_auth_data.roles:
+                for role in user_context.roles:
                     try:
-                        user_auth_data.scopes.extend(
-                            self._role_permission_mapping[role]
-                        )
+                        user_context.scopes.extend(self._role_permission_mapping[role])
                     except KeyError:
                         continue
 
-            return user_auth_data
+            return user_context
         except OAuth2Error as error:
             raise Unauthorized(str(error))
 
