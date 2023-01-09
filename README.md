@@ -186,7 +186,7 @@ class Entity():
 ```
 
 ## Bugs and Feature requests
-**!!! Warning! Breaking changes are to be expected !!!**
+**!!! Breaking changes are to be expected !!!**
 
 This package is in early stages of development and will require a few more iterations to be considered stable. As of right now, the PolicyFactory cannot handle conflicting policies, which may result in unauthorized access.
 
