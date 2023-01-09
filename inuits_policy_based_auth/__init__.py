@@ -11,8 +11,8 @@ Classes
 -------
     Authenticator
         used to authenticate a user
-    BasePolicy
-        used as an interface for concrete implementations of policies
+    BaseAuthorizationPolicy
+        used as an interface for concrete implementations of authorization policies
     RequestContext
         contains data about the context of a request
     UserContext
@@ -23,7 +23,9 @@ Classes
 
 
 from inuits_policy_based_auth.authentication.authenticator import Authenticator
-from inuits_policy_based_auth.authorization.base_policy import BasePolicy
+from inuits_policy_based_auth.authorization.base_authorization_policy import (
+    BaseAuthorizationPolicy,
+)
 from inuits_policy_based_auth.contexts.request_context import RequestContext
 from inuits_policy_based_auth.contexts.user_context import UserContext
 from inuits_policy_based_auth.policy_factory import PolicyFactory

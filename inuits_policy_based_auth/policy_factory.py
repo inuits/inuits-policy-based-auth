@@ -1,7 +1,9 @@
 import functools
 
 from inuits_policy_based_auth.authentication.authenticator import Authenticator
-from inuits_policy_based_auth.authorization.base_policy import BasePolicy
+from inuits_policy_based_auth.authorization.base_authorization_policy import (
+    BaseAuthorizationPolicy,
+)
 from inuits_policy_based_auth.contexts.request_context import RequestContext
 from inuits_policy_based_auth.contexts.user_context import UserContext
 from inuits_policy_based_auth.exceptions import (
@@ -24,7 +26,7 @@ class PolicyFactory:
         a logger to log information
     _user_context : UserContext
         an object containing data about the authenticated user
-    _policies : list[BasePolicy]
+    _policies : list[BaseAuthorizationPolicy]
         a list of policies to apply
 
     Methods
@@ -50,7 +52,7 @@ class PolicyFactory:
         self._authenticator = authenticator
         self._logger = logger
         self._user_context = None
-        self._policies: list[BasePolicy] = []
+        self._policies: list[BaseAuthorizationPolicy] = []
 
     @property
     def authenticator(self):
@@ -78,12 +80,12 @@ class PolicyFactory:
             raise NoUserContextException()
         return self._user_context
 
-    def register(self, policy: BasePolicy):
+    def register_authorization_policy(self, policy: BaseAuthorizationPolicy):
         """Appends a policy to the list of policies to be applied.
 
         Parameters
         ----------
-        policy : BasePolicy
+        policy : BaseAuthorizationPolicy
             a policy to be applied
         """
 

@@ -135,7 +135,7 @@ load_policies(policy_factory)
 As you can see in these examples, dynamically loading policies will allow you to add new policies and override existing ones, which makes this package highly customizable and generic.
 
 ### Custom policies
-Continuing from the examples above, you can make a custom policy by creating a folder ```policies``` within a specific app. Here you can create a policy which you can add to your configuration. In this case we name our new policy the same as an existing one, which will override it. Each policy must inherit from BasePolicy and implement the abstract methods ```authenticate``` and ```authorize```.
+Continuing from the examples above, you can make a custom authorization policy by creating a folder ```policies``` within a specific app. Here you can create a policy which you can add to your configuration. In this case we name our new policy the same as an existing one, which will override it. Each authorization policy must inherit from BaseAuthorizationPolicy and implement the abstract methods ```authenticate``` and ```authorize```.
 
 Example folder structure:
 ```
@@ -154,11 +154,11 @@ api
 
 Example custom open_data_policy.py:
 ```python
-from inuits_policy_based_auth import BasePolicy
+from inuits_policy_based_auth import BaseAuthorizationPolicy
 from werkzeug.exceptions import Forbidden
 
 
-class OpenDataPolicy(BasePolicy):
+class OpenDataPolicy(BaseAuthorizationPolicy):
     def authenticate(self, authenticator, request_context):
         return authenticator.authenticate()
 

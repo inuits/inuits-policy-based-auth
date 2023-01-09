@@ -1,9 +1,11 @@
-from inuits_policy_based_auth.authorization.base_policy import BasePolicy
+from inuits_policy_based_auth.authorization.base_authorization_policy import (
+    BaseAuthorizationPolicy,
+)
 from inuits_policy_based_auth.contexts.user_context import UserContext
 from werkzeug.exceptions import Forbidden
 
 
-class OpenDataPolicy(BasePolicy):
+class OpenDataPolicy(BaseAuthorizationPolicy):
     """
     A policy that allows every GET-request.
     """

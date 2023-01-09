@@ -1,8 +1,10 @@
-from inuits_policy_based_auth.authorization.base_policy import BasePolicy
+from inuits_policy_based_auth.authorization.base_authorization_policy import (
+    BaseAuthorizationPolicy,
+)
 from werkzeug.exceptions import Forbidden
 
 
-class SuperAdminPolicy(BasePolicy):
+class SuperAdminPolicy(BaseAuthorizationPolicy):
     """
     A policy that allows an authenticated user to do anything when he/she has the role 'role_super_admin'.
     """
