@@ -9,16 +9,15 @@ from authlib.oauth2 import OAuth2Error
 from authlib.oauth2.rfc6750 import BearerTokenValidator
 from authlib.oauth2.rfc7523 import JWTBearerToken
 from datetime import datetime
-from inuits_policy_based_auth.authentication.strategy import Strategy
-from inuits_policy_based_auth.contexts.user_context import UserContext
+from inuits_policy_based_auth.authentication.base_authentication_policy import (
+    BaseAuthenticationPolicy,
+)
 from werkzeug.exceptions import Unauthorized
 
 
-class AuthlibFlaskOauth2Strategy(Strategy):
+class AuthlibFlaskOauth2Policy(BaseAuthenticationPolicy):
     """
-    This class is a concrete implementation of an authentication strategy.
-
-    This strategy uses Authlib Flask OAuth2 to do token-based authentication.
+    An authentication policy that uses Authlib Flask OAuth2 to do token-based authentication.
     """
 
     def __init__(
@@ -52,10 +51,10 @@ class AuthlibFlaskOauth2Strategy(Strategy):
             role_permission_file_location
         )
 
-    def authenticate(self):
+    def authenticate(self, user_context):
         try:
             token = self._resource_protector.acquire_token()
-            user_context = UserContext(auth_object=token)
+            user_context.auth_objects.append(token)
             flattened_token = user_context.flatten_auth_object(token)
 
             user_context.email = flattened_token.get("email", "")

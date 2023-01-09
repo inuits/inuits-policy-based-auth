@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from inuits_policy_based_auth.authentication.authenticator import Authenticator
 from inuits_policy_based_auth.contexts.request_context import RequestContext
 from inuits_policy_based_auth.contexts.user_context import UserContext
 
@@ -10,21 +9,21 @@ class BasePolicy(ABC):
 
     Methods
     -------
-    apply(authenticator, request_context)
+    apply(user_context, request_context)
         applies the policy
     """
 
     @abstractmethod
     def apply(
-        self, authenticator: Authenticator, request_context: RequestContext
+        self, user_context: UserContext, request_context: RequestContext | None
     ) -> UserContext:
         """Applies the policy.
 
         Parameters
         ----------
-        authenticator : Authenticator
-            the authenticator used to authenticate a user
-        request_context : RequestContext
+        user_context : UserContext
+            an object containing data about the authenticated user
+        request_context : RequestContext, optional
             an object containing data about the context of a request
 
         Returns
@@ -34,7 +33,7 @@ class BasePolicy(ABC):
 
         Raises
         ------
-        AuthenticateMethodDidNotReturnObjectOfTypeUserContext
+        AuthenticateMethodDidNotReturnObjectOfTypeUserContextException
             if the authenticate method does not return an object of type UserContext
         """
 

@@ -9,8 +9,6 @@ to make it exactly fit your needs.
 
 Classes
 -------
-    Authenticator
-        used to authenticate a user
     BaseAuthenticationPolicy
         used as an interface for concrete implementations of authentication policies
     BaseAuthorizationPolicy
@@ -24,7 +22,6 @@ Classes
 """
 
 
-from inuits_policy_based_auth.authentication.authenticator import Authenticator
 from inuits_policy_based_auth.authentication.base_authentication_policy import (
     BaseAuthenticationPolicy,
 )

@@ -7,8 +7,8 @@ class UserContext:
 
     Attributes
     ----------
-    _auth_object : Unknown
-        the object used to authenticate a user, for example a token
+    _auth_objects : list[Unknown]
+        the objects used to authenticate a user, for example a token
     _email : str
         the email of the authenticated user
     _roles : list[str]
@@ -22,22 +22,15 @@ class UserContext:
         flattens the auth object to be a dict of one level deep
     """
 
-    def __init__(self, *, auth_object):
-        """
-        Parameters
-        ----------
-        auth_object : Unknown
-            the object used to authenticate a user with, for example a token
-        """
-
-        self._auth_object = auth_object
+    def __init__(self):
+        self._auth_objects = []
         self._email = ""
         self._roles = []
         self._scopes = []
 
     @property
-    def auth_object(self):
-        self._auth_object
+    def auth_objects(self):
+        return self._auth_objects
 
     @property
     def email(self):

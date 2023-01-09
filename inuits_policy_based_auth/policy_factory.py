@@ -1,14 +1,12 @@
 import functools
 
-from inuits_policy_based_auth.authentication.authenticator import Authenticator
 from inuits_policy_based_auth.authorization.base_authorization_policy import (
     BaseAuthorizationPolicy,
 )
 from inuits_policy_based_auth.contexts.request_context import RequestContext
 from inuits_policy_based_auth.contexts.user_context import UserContext
 from inuits_policy_based_auth.exceptions import (
-    NoStrategySetForAuthenticatorException,
-    NoPoliciesToApplyException,
+    NoAuthorizationPoliciesToApplyException,
     NoUserContextException,
 )
 from werkzeug.exceptions import Unauthorized, Forbidden
@@ -20,8 +18,6 @@ class PolicyFactory:
 
     Attributes
     ----------
-    _authenticator : Authenticator
-        the authenticator used to authenticate a user
     _logger : Unknown
         a logger to log information
     _user_context : UserContext
@@ -33,30 +29,23 @@ class PolicyFactory:
     -------
     get_user_context()
         returns an object of type UserContext
-    register(policy)
-        appends a policy to the list of policies to be applied
+    register_authorization_policy(policy)
+        appends a policy to the list of authorization policies to be applied
     apply_policies(request_context)
         applies the policies to determine access
     """
 
-    def __init__(self, authenticator: Authenticator, logger):
+    def __init__(self, logger):
         """
         Parameters
         ----------
-        authenticator : Authenticator
-            the authenticator used to authenticate a user
         logger : Unknown
             a logger to log information
         """
 
-        self._authenticator = authenticator
         self._logger = logger
         self._user_context = None
-        self._policies: list[BaseAuthorizationPolicy] = []
-
-    @property
-    def authenticator(self):
-        return self._authenticator
+        self._authorization_policies: list[BaseAuthorizationPolicy] = []
 
     @property
     def logger(self):
@@ -81,7 +70,7 @@ class PolicyFactory:
         return self._user_context
 
     def register_authorization_policy(self, policy: BaseAuthorizationPolicy):
-        """Appends a policy to the list of policies to be applied.
+        """Appends a policy to the list of authorization policies to be applied.
 
         Parameters
         ----------
@@ -89,7 +78,7 @@ class PolicyFactory:
             a policy to be applied
         """
 
-        self._policies.append(policy)
+        self._authorization_policies.append(policy)
 
     def apply_policies(self, request_context: RequestContext):
         """Applies the policies to determine access.
@@ -108,9 +97,7 @@ class PolicyFactory:
 
         Raises
         ------
-        NoStrategySetForAuthenticatorException
-            if no strategy is set for the authenticator
-        NoPoliciesToApplyException
+        NoAuthorizationPoliciesToApplyException
             if the policies list is empty
         Unauthorized
             if a user is not authenticated
@@ -121,16 +108,16 @@ class PolicyFactory:
         def decorator(decorated_function):
             @functools.wraps(decorated_function)
             def decorated_function_wrapper(*args, **kwargs):
-                if not self._authenticator.strategy:
-                    raise NoStrategySetForAuthenticatorException()
-                if len(self._policies) <= 0:
-                    raise NoPoliciesToApplyException()
+                if len(self._authorization_policies) <= 0:
+                    raise NoAuthorizationPoliciesToApplyException()
+
+                self._user_context = UserContext()
 
                 raised_error = None
-                for policy in self._policies:
+                for policy in self._authorization_policies:
                     try:
                         self._user_context = policy.apply(
-                            self._authenticator, request_context
+                            self._user_context, request_context
                         )
                         return decorated_function(*args, **kwargs)
                     except (Unauthorized, Forbidden) as error:

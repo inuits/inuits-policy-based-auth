@@ -3,24 +3,15 @@ class PolicyFactoryException(Exception):
         super().__init__(message)
 
 
-class NoStrategySetForAuthenticatorException(PolicyFactoryException):
+class NoAuthorizationPoliciesToApplyException(PolicyFactoryException):
     def __init__(self):
-        super().__init__(
-            "No concrete implementation (strategy) set for Authenticator to authenticate with."
-        )
-
-
-class NoPoliciesToApplyException(PolicyFactoryException):
-    def __init__(self):
-        super().__init__(
-            "No policies set to apply in app.py, or in app_list.json under '{app}.security.policies'."
-        )
+        super().__init__("No authorization policies set to apply.")
 
 
 class NoUserContextException(PolicyFactoryException):
     def __init__(self):
         super().__init__(
-            "Cannot get an object of type UserContext when no policies were applied."
+            "Cannot get an object of type UserContext if no policies are applied yet."
         )
 
 
@@ -28,8 +19,13 @@ class PolicyException(Exception):
     pass
 
 
-class AuthenticateMethodDidNotReturnObjectOfTypeUserContext(PolicyException):
+class AuthenticateMethodDidNotReturnObjectOfTypeUserContextException(PolicyException):
     def __init__(self):
         super().__init__(
-            "The authenticate method of a policy or an authentication strategy did not return an object of type UserContext."
+            "Authenticate method of authentication policy did not return an object of type UserContext."
         )
+
+
+class NoRequestContextInAuthorizationPolicyException(PolicyException):
+    def __init__(self):
+        super().__init__("No request_context in authorization policy.")
