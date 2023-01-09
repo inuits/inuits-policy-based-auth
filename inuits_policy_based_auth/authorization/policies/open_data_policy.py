@@ -1,5 +1,5 @@
-from inuits_policy_based_auth.authentication.user_auth_data import UserAuthData
 from inuits_policy_based_auth.authorization.base_policy import BasePolicy
+from inuits_policy_based_auth.user_auth_data import UserAuthData
 from werkzeug.exceptions import Forbidden
 
 
