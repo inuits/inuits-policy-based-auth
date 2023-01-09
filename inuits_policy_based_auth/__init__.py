@@ -11,6 +11,8 @@ Classes
 -------
     Authenticator
         used to authenticate a user
+    BaseAuthenticationPolicy
+        used as an interface for concrete implementations of authentication policies
     BaseAuthorizationPolicy
         used as an interface for concrete implementations of authorization policies
     RequestContext
@@ -23,6 +25,9 @@ Classes
 
 
 from inuits_policy_based_auth.authentication.authenticator import Authenticator
+from inuits_policy_based_auth.authentication.base_authentication_policy import (
+    BaseAuthenticationPolicy,
+)
 from inuits_policy_based_auth.authorization.base_authorization_policy import (
     BaseAuthorizationPolicy,
 )
