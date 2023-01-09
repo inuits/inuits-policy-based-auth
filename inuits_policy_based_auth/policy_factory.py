@@ -2,7 +2,7 @@ import functools
 
 from inuits_policy_based_auth.authentication.authenticator import Authenticator
 from inuits_policy_based_auth.authorization.base_policy import BasePolicy
-from inuits_policy_based_auth.context import Context
+from inuits_policy_based_auth.contexts.request_context import RequestContext
 from inuits_policy_based_auth.exceptions import (
     NoStrategySetForAuthenticatorException,
     NoPoliciesToApplyException,
@@ -33,7 +33,7 @@ class PolicyFactory:
         returns an object of type UserAuthData
     register(policy)
         appends a policy to the list of policies to be applied
-    apply_policies(context)
+    apply_policies(request_context)
         applies the policies to determine access
     """
 
@@ -89,14 +89,14 @@ class PolicyFactory:
 
         self._policies.append(policy)
 
-    def apply_policies(self, context: Context):
+    def apply_policies(self, request_context: RequestContext):
         """Applies the policies to determine access.
 
         The first succeeding policy will stop execution and provide access.
 
         Parameters
         ----------
-        context : Context
+        request_context : RequestContext
             an object containing data about the context of a request
 
         Returns
@@ -128,7 +128,7 @@ class PolicyFactory:
                 for policy in self._policies:
                     try:
                         self._user_auth_data = policy.apply(
-                            self._authenticator, context
+                            self._authenticator, request_context
                         )
                         return decorated_function(*args, **kwargs)
                     except (Unauthorized, Forbidden) as error:

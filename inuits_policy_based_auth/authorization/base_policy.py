@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from inuits_policy_based_auth.authentication.authenticator import Authenticator
-from inuits_policy_based_auth.context import Context
+from inuits_policy_based_auth.contexts.request_context import RequestContext
 from inuits_policy_based_auth.exceptions import (
     AuthenticateMethodDidNotReturnObjectOfTypeUserAuthData,
 )
@@ -13,22 +13,22 @@ class BasePolicy(ABC):
 
     Methods
     -------
-    apply(authenticator, context)
+    apply(authenticator, request_context)
         applies the policy by executing the authenticate and authorize methods
-    authenticate(authenticator, context)
+    authenticate(authenticator, request_context)
         authenticates a user
-    authorize(user_auth_data, context)
+    authorize(user_auth_data, request_context)
         authorizes a user
     """
 
-    def apply(self, authenticator: Authenticator, context: Context):
+    def apply(self, authenticator: Authenticator, request_context: RequestContext):
         """Applies the policy by executing the authenticate and authorize methods.
 
         Parameters
         ----------
         authenticator : Authenticator
             the authenticator used to authenticate a user
-        context : Context
+        request_context : RequestContext
             an object containing data about the context of a request
 
         Returns
@@ -42,16 +42,16 @@ class BasePolicy(ABC):
             if the authenticate method does not return an object of type UserAuthData
         """
 
-        user_auth_data = self.authenticate(authenticator, context)
+        user_auth_data = self.authenticate(authenticator, request_context)
         if not isinstance(user_auth_data, UserAuthData):
             raise AuthenticateMethodDidNotReturnObjectOfTypeUserAuthData()
 
-        self.authorize(user_auth_data, context)
+        self.authorize(user_auth_data, request_context)
         return user_auth_data
 
     @abstractmethod
     def authenticate(
-        self, authenticator: Authenticator, context: Context
+        self, authenticator: Authenticator, request_context: RequestContext
     ) -> UserAuthData:
         """Authenticates a user.
 
@@ -59,7 +59,7 @@ class BasePolicy(ABC):
         ----------
         authenticator : Authenticator
             the authenticator used to authenticate a user
-        context : Context
+        request_context : RequestContext
             an object containing data about the context of a request
 
         Returns
@@ -71,14 +71,14 @@ class BasePolicy(ABC):
         pass
 
     @abstractmethod
-    def authorize(self, user_auth_data: UserAuthData, context: Context):
+    def authorize(self, user_auth_data: UserAuthData, request_context: RequestContext):
         """Authorizes a user.
 
         Parameters
         ----------
         user_auth_data : UserAuthData
             an object containing data about the authenticated user
-        context : Context
+        request_context : RequestContext
             an object containing data about the context of a request
 
         Raises

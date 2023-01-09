@@ -159,11 +159,11 @@ from werkzeug.exceptions import Forbidden
 
 
 class OpenDataPolicy(BasePolicy):
-    def authenticate(self, authenticator, context):
+    def authenticate(self, authenticator, request_context):
         return authenticator.authenticate()
 
-    def authorize(self, user_auth_data, context):
-        request = context.http_request
+    def authorize(self, user_auth_data, request_context):
+        request = request_context.http_request
         if request.method != "GET":
             raise Forbidden()
 ```
@@ -173,11 +173,11 @@ If everything is set up correctly, you can use the ```apply_policies``` decorato
 ```python
 from app import policy_factory
 from flask import request
-from inuits_policy_based_auth import Context
+from inuits_policy_based_auth import RequestContext
 
 
 class Entity():
-    @policy_factory.apply_policies(Context("read:entity", request))
+    @policy_factory.apply_policies(RequestContext("read:entity", request))
     def get(self):
         ...
 ```

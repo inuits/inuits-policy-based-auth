@@ -13,7 +13,7 @@ Classes
         used to authenticate a user
     BasePolicy
         used as an interface for concrete implementations of policies
-    Context
+    RequestContext
         contains data about the context of a request
     PolicyFactory
         the main class, used to apply policies
@@ -24,6 +24,6 @@ Classes
 
 from inuits_policy_based_auth.authentication.authenticator import Authenticator
 from inuits_policy_based_auth.authorization.base_policy import BasePolicy
-from inuits_policy_based_auth.context import Context
+from inuits_policy_based_auth.contexts.request_context import RequestContext
 from inuits_policy_based_auth.policy_factory import PolicyFactory
 from inuits_policy_based_auth.user_auth_data import UserAuthData
