@@ -1,3 +1,6 @@
+# !!! Ongoing breaking changes !!!
+**README instructions are not valid anymore! It will be updated as soon as possible.**
+
 # inuits-policy-based-auth
 inuits_policy_based_auth is a python package for securing API endpoints based on policies.
 
