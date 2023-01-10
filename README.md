@@ -59,8 +59,8 @@ Example configuration file:
 
 Example policy_loader.py:
 ```python
+import json
 import os
-import util
 
 from importlib import import_module
 from inuits_policy_based_auth import PolicyFactory
@@ -70,7 +70,12 @@ from inuits_policy_based_auth.exceptions import (
 
 
 def load_policies(policy_factory: PolicyFactory):
-    apps = util.read_json_as_dict(os.getenv("APPS_MANIFEST"))
+    apps = {}
+
+    configuration_file_name = os.getenv("CONFIGURATION_FILE_NAME") or ""
+    with open(configuration_file_name) as configuration_file:
+        apps = json.load(configuration_file)
+
     for app in apps:
         try:
             auth_type = "authentication"
@@ -144,7 +149,7 @@ api
 │  │  │     └── open_data_policy.py
 │  │  ├── ...
 ...
-│  ├── app_list.json
+│  ├── configuration.json
 │  └── policy_loader.py
 ...
 └── app.py
