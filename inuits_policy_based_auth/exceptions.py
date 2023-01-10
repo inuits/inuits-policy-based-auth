@@ -26,6 +26,8 @@ class AuthenticateMethodDidNotReturnObjectOfTypeUserContextException(PolicyExcep
         )
 
 
-class NoRequestContextInAuthorizationPolicyException(PolicyException):
+class AuthorizeMethodDidNotReturnObjectOfTypePolicyContextException(PolicyException):
     def __init__(self):
-        super().__init__("No request_context in authorization policy.")
+        super().__init__(
+            "Authorize method of authorization policy did not return an object of type PolicyContext."
+        )

@@ -1,22 +1,41 @@
 from abc import abstractmethod
-from inuits_policy_based_auth.base_policy import BasePolicy
 from inuits_policy_based_auth.contexts.user_context import UserContext
 from inuits_policy_based_auth.exceptions import (
     AuthenticateMethodDidNotReturnObjectOfTypeUserContextException,
 )
 
 
-class BaseAuthenticationPolicy(BasePolicy):
+class BaseAuthenticationPolicy:
     """
     An abstract class used as an interface for concrete implementations of authentication policies.
 
     Methods
     -------
+    apply(user_context)
+        applies the policy
     authenticate(user_context)
         authenticates a user
     """
 
-    def apply(self, user_context, request_context=None):
+    def apply(self, user_context: UserContext) -> UserContext:
+        """Applies the policy.
+
+        Parameters
+        ----------
+        user_context : UserContext
+            an object containing data about the authenticated user
+
+        Returns
+        -------
+        UserContext
+            an object containing data about the authenticated user
+
+        Raises
+        ------
+        AuthenticateMethodDidNotReturnObjectOfTypeUserContextException
+            if the authenticate method does not return an object of type UserContext
+        """
+
         user_context = self.authenticate(user_context)
         if not isinstance(user_context, UserContext):
             raise AuthenticateMethodDidNotReturnObjectOfTypeUserContextException()
@@ -36,6 +55,11 @@ class BaseAuthenticationPolicy(BasePolicy):
         -------
         UserContext
             an object containing data about the authenticated user
+
+        Raises
+        ------
+        Unauthorized
+            if the user is not authenticated
         """
 
         pass

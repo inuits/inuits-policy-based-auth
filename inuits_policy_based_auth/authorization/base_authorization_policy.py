@@ -1,44 +1,83 @@
 from abc import abstractmethod
-from inuits_policy_based_auth.base_policy import BasePolicy
+from inuits_policy_based_auth.contexts.policy_context import PolicyContext
 from inuits_policy_based_auth.contexts.request_context import RequestContext
 from inuits_policy_based_auth.contexts.user_context import UserContext
 from inuits_policy_based_auth.exceptions import (
-    NoRequestContextInAuthorizationPolicyException,
+    AuthorizeMethodDidNotReturnObjectOfTypePolicyContextException,
 )
 
 
-class BaseAuthorizationPolicy(BasePolicy):
+class BaseAuthorizationPolicy:
     """
     An abstract class used as an interface for concrete implementations of authorization policies.
 
     Methods
     -------
+    apply(user_context, request_context)
+        applies the policy
     authorize(user_context, request_context)
         authorizes a user
     """
 
-    def apply(self, user_context, request_context):
-        if not request_context:
-            raise NoRequestContextInAuthorizationPolicyException()
+    def apply(
+        self,
+        policy_context: PolicyContext,
+        user_context: UserContext,
+        request_context: RequestContext,
+    ) -> PolicyContext:
+        """Applies the policy.
 
-        self.authorize(user_context, request_context)
-        return user_context
-
-    @abstractmethod
-    def authorize(self, user_context: UserContext, request_context: RequestContext):
-        """Authorizes a user.
+        Sets policy_context.access_verdict to its default value None before authorizing.
 
         Parameters
         ----------
+        policy_context : PolicyContext
+            an object containing data about the context of an applied authorization policy
         user_context : UserContext
             an object containing data about the authenticated user
         request_context : RequestContext
             an object containing data about the context of a request
 
+        Returns
+        -------
+        PolicyContext
+            an object containing data about the context of an applied authorization policy
+
         Raises
         ------
-        Forbidden
-            if the user is not authorized
+        AuthorizeMethodDidNotReturnObjectOfTypePolicyContextException
+            if the authorize method does not return an object of type PolicyContext
+        """
+
+        policy_context.access_verdict = None
+        policy_context = self.authorize(policy_context, user_context, request_context)
+        if not isinstance(policy_context, PolicyContext):
+            raise AuthorizeMethodDidNotReturnObjectOfTypePolicyContextException()
+
+        return policy_context
+
+    @abstractmethod
+    def authorize(
+        self,
+        policy_context: PolicyContext,
+        user_context: UserContext,
+        request_context: RequestContext,
+    ) -> PolicyContext:
+        """Authorizes a user.
+
+        Parameters
+        ----------
+        policy_context : PolicyContext
+            an object containing data about the context of an applied authorization policy
+        user_context : UserContext
+            an object containing data about the authenticated user
+        request_context : RequestContext, optional
+            an object containing data about the context of a request
+
+        Returns
+        -------
+        PolicyContext
+            an object containing data about the context of an applied authorization policy
         """
 
         pass

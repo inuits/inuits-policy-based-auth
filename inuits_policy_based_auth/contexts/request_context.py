@@ -7,7 +7,7 @@ class RequestContext:
     Attributes
     ----------
     _http_request : Unknown
-        an HTTP request that is used by policies to determine access to a resource.
+        an HTTP request that is used by policies to determine access to a resource
     _resource_scope : str, optional
         a scope a user must have for accessing a protected resource when policies rely on scope-based authorization
     """

@@ -1,7 +1,6 @@
 from inuits_policy_based_auth.authorization.base_authorization_policy import (
     BaseAuthorizationPolicy,
 )
-from werkzeug.exceptions import Forbidden
 
 
 class OpenDataPolicy(BaseAuthorizationPolicy):
@@ -9,7 +8,9 @@ class OpenDataPolicy(BaseAuthorizationPolicy):
     An authorization policy that allows every GET-request.
     """
 
-    def authorize(self, user_context, request_context):
+    def authorize(self, policy_context, user_context, request_context):
         request = request_context.http_request
-        if request.method != "GET":
-            raise Forbidden()
+        if request.method == "GET":
+            policy_context.access_verdict = True
+
+        return policy_context
