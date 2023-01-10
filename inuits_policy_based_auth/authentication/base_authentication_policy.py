@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from inuits_policy_based_auth.contexts.user_context import UserContext
+from inuits_policy_based_auth.contexts import UserContext
 from inuits_policy_based_auth.exceptions import (
     AuthenticateMethodDidNotReturnObjectOfTypeUserContextException,
 )

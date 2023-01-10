@@ -6,9 +6,7 @@ from inuits_policy_based_auth.authentication.base_authentication_policy import (
 from inuits_policy_based_auth.authorization.base_authorization_policy import (
     BaseAuthorizationPolicy,
 )
-from inuits_policy_based_auth.contexts.policy_context import PolicyContext
-from inuits_policy_based_auth.contexts.request_context import RequestContext
-from inuits_policy_based_auth.contexts.user_context import UserContext
+from inuits_policy_based_auth.contexts import PolicyContext, RequestContext, UserContext
 from inuits_policy_based_auth.exceptions import (
     NoAuthenticationPoliciesToApplyException,
     NoAuthorizationPoliciesToApplyException,

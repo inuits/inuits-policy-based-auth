@@ -15,8 +15,6 @@ Classes
         used as an interface for concrete implementations of authorization policies
     RequestContext
         contains data about the context of a request
-    UserContext
-        contains data about the authenticated user
     PolicyFactory
         the main class, used to apply policies
 """
@@ -28,6 +26,5 @@ from inuits_policy_based_auth.authentication.base_authentication_policy import (
 from inuits_policy_based_auth.authorization.base_authorization_policy import (
     BaseAuthorizationPolicy,
 )
-from inuits_policy_based_auth.contexts.request_context import RequestContext
-from inuits_policy_based_auth.contexts.user_context import UserContext
+from inuits_policy_based_auth.contexts import RequestContext
 from inuits_policy_based_auth.policy_factory import PolicyFactory
