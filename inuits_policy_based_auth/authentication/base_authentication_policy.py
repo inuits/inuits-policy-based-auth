@@ -34,6 +34,8 @@ class BaseAuthenticationPolicy:
         ------
         AuthenticateMethodDidNotReturnObjectOfTypeUserContextException
             if the authenticate method does not return an object of type UserContext
+        Unauthorized
+            if the user is not authenticated
         """
 
         user_context = self.authenticate(user_context)

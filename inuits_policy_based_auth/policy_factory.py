@@ -1,15 +1,20 @@
 import functools
 
+from inuits_policy_based_auth.authentication.base_authentication_policy import (
+    BaseAuthenticationPolicy,
+)
 from inuits_policy_based_auth.authorization.base_authorization_policy import (
     BaseAuthorizationPolicy,
 )
+from inuits_policy_based_auth.contexts.policy_context import PolicyContext
 from inuits_policy_based_auth.contexts.request_context import RequestContext
 from inuits_policy_based_auth.contexts.user_context import UserContext
 from inuits_policy_based_auth.exceptions import (
+    NoAuthenticationPoliciesToApplyException,
     NoAuthorizationPoliciesToApplyException,
     NoUserContextException,
 )
-from werkzeug.exceptions import Unauthorized, Forbidden
+from werkzeug.exceptions import Forbidden
 
 
 class PolicyFactory:
@@ -45,6 +50,7 @@ class PolicyFactory:
 
         self._logger = logger
         self._user_context = None
+        self._authentication_policies: list[BaseAuthenticationPolicy] = []
         self._authorization_policies: list[BaseAuthorizationPolicy] = []
 
     @property
@@ -69,6 +75,17 @@ class PolicyFactory:
             raise NoUserContextException()
         return self._user_context
 
+    def register_authentication_policy(self, policy: BaseAuthenticationPolicy):
+        """Appends a policy to the list of authentication policies to be applied.
+
+        Parameters
+        ----------
+        policy : BaseAuthenticationPolicy
+            a policy to be applied
+        """
+
+        self._authentication_policies.append(policy)
+
     def register_authorization_policy(self, policy: BaseAuthorizationPolicy):
         """Appends a policy to the list of authorization policies to be applied.
 
@@ -83,7 +100,9 @@ class PolicyFactory:
     def apply_policies(self, request_context: RequestContext):
         """Applies the policies to determine access.
 
-        The first succeeding policy will stop execution and provide access.
+        The first allowing policy will stop execution and allow access.
+        The first denying policy will stop execution and deny access.
+        If all policies are applied and none of them allowed or denied access (policy_context.access_verdict == None), then access is denied.
 
         Parameters
         ----------
@@ -97,38 +116,49 @@ class PolicyFactory:
 
         Raises
         ------
+        NoAuthenticationPoliciesToApplyException
+            if no authentication policies are registered
         NoAuthorizationPoliciesToApplyException
-            if the policies list is empty
+            if no authorization policies are registered
         Unauthorized
-            if a user is not authenticated
+            if user is not authenticated
         Forbidden
-            if a user is not authorized
+            if user is not authorized
         """
 
         def decorator(decorated_function):
             @functools.wraps(decorated_function)
             def decorated_function_wrapper(*args, **kwargs):
+                if len(self._authentication_policies) <= 0:
+                    raise NoAuthenticationPoliciesToApplyException()
                 if len(self._authorization_policies) <= 0:
                     raise NoAuthorizationPoliciesToApplyException()
 
-                self._user_context = UserContext()
-
-                raised_error = None
-                for policy in self._authorization_policies:
-                    try:
-                        self._user_context = policy.apply(
-                            self._user_context, request_context
-                        )
-                        return decorated_function(*args, **kwargs)
-                    except (Unauthorized, Forbidden) as error:
-                        raised_error = error
-                        continue
-
-                if isinstance(raised_error, Unauthorized):
-                    raise Unauthorized(str(raised_error))
-                else:
-                    raise Forbidden(str(raised_error))
+                self._user_context = self.__authenticate()
+                self.__authorize(self._user_context, request_context)
+                return decorated_function(*args, **kwargs)
 
             return decorated_function_wrapper
 
         return decorator
+
+    def __authenticate(self):
+        user_context = UserContext()
+
+        for policy in self._authentication_policies:
+            user_context = policy.apply(user_context)
+
+        return user_context
+
+    def __authorize(self, user_context: UserContext, request_context: RequestContext):
+        policy_context = PolicyContext()
+
+        for policy in self._authorization_policies:
+            policy_context = policy.apply(policy_context, user_context, request_context)
+
+            if policy_context.access_verdict:
+                return
+            elif policy_context.access_verdict == False:
+                break
+
+        raise Forbidden()

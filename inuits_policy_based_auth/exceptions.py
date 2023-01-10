@@ -3,6 +3,11 @@ class PolicyFactoryException(Exception):
         super().__init__(message)
 
 
+class NoAuthenticationPoliciesToApplyException(PolicyFactoryException):
+    def __init__(self):
+        super().__init__("No authentication policies set to apply.")
+
+
 class NoAuthorizationPoliciesToApplyException(PolicyFactoryException):
     def __init__(self):
         super().__init__("No authorization policies set to apply.")
