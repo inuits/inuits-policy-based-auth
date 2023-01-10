@@ -5,17 +5,17 @@ class UserContext:
     """
     A class containing data about the authenticated user.
 
-    Attributes
+    Properties
     ----------
-    _auth_objects : list[Unknown]
+    auth_objects : list[Unknown]
         the objects used to authenticate a user, for example a token
-    _email : str
+    email : str
         the email of the authenticated user
-    _tenant : str
+    tenant : str
         the tenant of the authenticated user
-    _roles : list[str]
+    roles : list[str]
         the roles of the authenticated user
-    _scopes : list[str]
+    scopes : list[str]
         the scopes of the authenticated user
 
     Methods
@@ -33,10 +33,14 @@ class UserContext:
 
     @property
     def auth_objects(self):
+        """The objects used to authenticate a user, for example a token."""
+
         return self._auth_objects
 
     @property
     def email(self):
+        """The email of the authenticated user."""
+
         return self._email
 
     @email.setter
@@ -45,6 +49,8 @@ class UserContext:
 
     @property
     def tenant(self):
+        """The tenant of the authenticated user."""
+
         return self._tenant
 
     @tenant.setter
@@ -53,6 +59,8 @@ class UserContext:
 
     @property
     def roles(self):
+        """The roles of the authenticated user."""
+
         return self._roles
 
     @roles.setter
@@ -61,6 +69,8 @@ class UserContext:
 
     @property
     def scopes(self):
+        """The scopes of the authenticated user."""
+
         return self._scopes
 
     def __flatten_auth_object_generator(self, data: MutableMapping, parent_key):

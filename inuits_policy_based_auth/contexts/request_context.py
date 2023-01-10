@@ -4,11 +4,11 @@ class RequestContext:
 
     The data provided in this class is used in policies to determine whether a user is authenticated/authorized.
 
-    Attributes
+    Properties
     ----------
-    _http_request : Unknown
+    http_request : Unknown
         an HTTP request that is used by policies to determine access to a resource
-    _resource_scope : str, optional
+    resource_scope : str, optional
         a scope a user must have for accessing a protected resource when policies rely on scope-based authorization
     """
 
@@ -27,8 +27,12 @@ class RequestContext:
 
     @property
     def http_request(self):
+        """An HTTP request that is used by policies to determine access to a resource."""
+
         return self._http_request
 
     @property
     def resource_scope(self):
+        """A scope a user must have for accessing a protected resource when policies rely on scope-based authorization."""
+
         return self._resource_scope

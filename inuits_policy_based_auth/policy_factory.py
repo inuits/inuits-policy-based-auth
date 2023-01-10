@@ -19,23 +19,21 @@ class PolicyFactory:
     """
     A class used to apply policies.
 
-    Attributes
+    Properties
     ----------
-    _logger : Unknown
+    logger : Unknown
         a logger to log information
-    _user_context : UserContext
-        an object containing data about the authenticated user
-    _policies : list[BaseAuthorizationPolicy]
-        a list of policies to apply
 
     Methods
     -------
     get_user_context()
         returns an object of type UserContext
+    register_authentication_policy(policy)
+        appends a policy to the list of authentication policies to be applied
     register_authorization_policy(policy)
         appends a policy to the list of authorization policies to be applied
     apply_policies(request_context)
-        applies the policies to determine access
+        applies registered policies to determine access
     """
 
     def __init__(self, logger):
@@ -53,6 +51,8 @@ class PolicyFactory:
 
     @property
     def logger(self):
+        """A logger to log information."""
+
         return self._logger
 
     def get_user_context(self) -> UserContext:
@@ -66,7 +66,7 @@ class PolicyFactory:
         Raises
         ------
         NoUserContextException
-            if there is no user auth data
+            if there is no user auth data yet
         """
 
         if not self._user_context:
@@ -96,7 +96,7 @@ class PolicyFactory:
         self._authorization_policies.append(policy)
 
     def apply_policies(self, request_context: RequestContext):
-        """Applies the policies to determine access.
+        """Applies registered policies to determine access.
 
         The first allowing policy will stop execution and allow access.
         The first denying policy will stop execution and deny access.
