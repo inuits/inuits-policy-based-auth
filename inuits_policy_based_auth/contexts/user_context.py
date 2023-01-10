@@ -11,6 +11,8 @@ class UserContext:
         the objects used to authenticate a user, for example a token
     _email : str
         the email of the authenticated user
+    _tenant : str
+        the tenant of the authenticated user
     _roles : list[str]
         the roles of the authenticated user
     _scopes : list[str]
@@ -25,6 +27,7 @@ class UserContext:
     def __init__(self):
         self._auth_objects = []
         self._email = ""
+        self._tenant = ""
         self._roles = []
         self._scopes = []
 
@@ -39,6 +42,14 @@ class UserContext:
     @email.setter
     def email(self, email: str):
         self._email = email
+
+    @property
+    def tenant(self):
+        return self._tenant
+
+    @tenant.setter
+    def tenant(self, tenant: str):
+        self._tenant = tenant
 
     @property
     def roles(self):
