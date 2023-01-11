@@ -15,12 +15,12 @@ class TestBaseAuthenticationPolicy:
         "inuits_policy_based_auth.authentication.base_authentication_policy.BaseAuthenticationPolicy.__abstractmethods__",
         set(),
     )
-    def setup_method(self, method):
+    def setup_method(self, _):
         self.policy = BaseAuthenticationPolicy()  # type: ignore
-        self.spy_authenticate_method = Mock(BaseAuthenticationPolicy())  # type: ignore
+        self.spy_policy_authenticate = Mock()
         self.user_context = UserContext()
 
-        self.policy.authenticate = self.spy_authenticate_method
+        self.policy.authenticate = self.spy_policy_authenticate
 
     def test_apply_returns_user_context(self):
         self.policy.authenticate.return_value = self.user_context
@@ -28,7 +28,7 @@ class TestBaseAuthenticationPolicy:
         user_context = self.policy.apply(self.user_context)
 
         self.policy.authenticate.assert_called_once()
-        assert user_context == self.user_context
+        assert user_context is self.user_context
 
     def test_apply_raises_AuthenticateMethodDidNotReturnObjectOfTypeUserContextException(
         self,

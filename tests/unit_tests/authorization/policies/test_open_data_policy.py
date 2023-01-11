@@ -8,10 +8,10 @@ from inuits_policy_based_auth.contexts import PolicyContext, RequestContext, Use
 class TestOpenDataPolicy:
     def setup_method(self):
         self.fake_http_request = FakeHttpRequest()
+        self.open_data_policy = OpenDataPolicy()
         self.policy_context = PolicyContext()
         self.user_context = UserContext()
         self.request_context = RequestContext(self.fake_http_request)
-        self.open_data_policy = OpenDataPolicy()
 
     def test_authorize_allows_access(self):
         self.fake_http_request._request_type = "GET"

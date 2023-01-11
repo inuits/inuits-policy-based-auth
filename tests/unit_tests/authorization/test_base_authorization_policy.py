@@ -15,14 +15,14 @@ class TestBaseAuthorizationPolicy:
         "inuits_policy_based_auth.authorization.base_authorization_policy.BaseAuthorizationPolicy.__abstractmethods__",
         set(),
     )
-    def setup_method(self, method):
+    def setup_method(self, _):
         self.policy = BaseAuthorizationPolicy()  # type: ignore
-        self.spy_authorize_method = Mock(BaseAuthorizationPolicy())  # type: ignore
+        self.spy_policy_authorize = Mock()
         self.policy_context = PolicyContext()
-        self.request_context = RequestContext(None)
         self.user_context = UserContext()
+        self.request_context = RequestContext(None)
 
-        self.policy.authorize = self.spy_authorize_method
+        self.policy.authorize = self.spy_policy_authorize
 
     def test_apply_returns_policy_context(self):
         self.policy.authorize.return_value = self.policy_context
@@ -32,7 +32,7 @@ class TestBaseAuthorizationPolicy:
         )
 
         self.policy.authorize.assert_called_once()
-        assert policy_context == self.policy_context
+        assert policy_context is self.policy_context
 
     def test_apply_sets_policy_context_access_verdict_to_none_by_default(self):
         self.policy_context.access_verdict = True

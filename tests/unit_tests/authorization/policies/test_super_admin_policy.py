@@ -6,10 +6,10 @@ from inuits_policy_based_auth.contexts import PolicyContext, RequestContext, Use
 
 class TestSuperAdminPolicy:
     def setup_method(self):
+        self.super_admin_policy = SuperAdminPolicy()
         self.policy_context = PolicyContext()
         self.user_context = UserContext()
         self.request_context = RequestContext(None)
-        self.super_admin_policy = SuperAdminPolicy()
 
     def test_authorize_allows_access(self):
         self.user_context.roles = ["role_super_admin"]
