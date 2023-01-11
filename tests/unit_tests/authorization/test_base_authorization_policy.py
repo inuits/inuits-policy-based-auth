@@ -1,8 +1,6 @@
 import pytest
 
-from inuits_policy_based_auth.authorization.base_authorization_policy import (
-    BaseAuthorizationPolicy,
-)
+from inuits_policy_based_auth import BaseAuthorizationPolicy
 from inuits_policy_based_auth.contexts import PolicyContext, RequestContext, UserContext
 from inuits_policy_based_auth.exceptions import (
     AuthorizeMethodDidNotReturnObjectOfTypePolicyContextException,

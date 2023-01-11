@@ -1,8 +1,6 @@
 import pytest
 
-from inuits_policy_based_auth.authentication.base_authentication_policy import (
-    BaseAuthenticationPolicy,
-)
+from inuits_policy_based_auth import BaseAuthenticationPolicy
 from inuits_policy_based_auth.contexts import UserContext
 from inuits_policy_based_auth.exceptions import (
     AuthenticateMethodDidNotReturnObjectOfTypeUserContextException,
