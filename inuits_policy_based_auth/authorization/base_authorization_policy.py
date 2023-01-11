@@ -1,11 +1,11 @@
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from inuits_policy_based_auth.contexts import PolicyContext, RequestContext, UserContext
 from inuits_policy_based_auth.exceptions import (
     AuthorizeMethodDidNotReturnObjectOfTypePolicyContextException,
 )
 
 
-class BaseAuthorizationPolicy:
+class BaseAuthorizationPolicy(ABC):
     """
     An abstract class used as an interface for concrete implementations of authorization policies.
 
