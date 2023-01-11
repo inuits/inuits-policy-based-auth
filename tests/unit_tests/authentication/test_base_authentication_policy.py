@@ -18,17 +18,17 @@ class TestBaseAuthenticationPolicy:
     def setup_method(self, method):
         self.policy = BaseAuthenticationPolicy()  # type: ignore
         self.spy_authenticate_method = Mock(BaseAuthenticationPolicy())  # type: ignore
-        self.dummy_user_context = Mock(UserContext)
+        self.user_context = UserContext()
 
         self.policy.authenticate = self.spy_authenticate_method
 
     def test_apply_returns_user_context(self):
-        self.policy.authenticate.return_value = self.dummy_user_context
+        self.policy.authenticate.return_value = self.user_context
 
-        user_context = self.policy.apply(self.dummy_user_context)
+        user_context = self.policy.apply(self.user_context)
 
         self.policy.authenticate.assert_called_once()
-        assert user_context == self.dummy_user_context
+        assert user_context == self.user_context
 
     def test_apply_raises_AuthenticateMethodDidNotReturnObjectOfTypeUserContextException(
         self,
@@ -36,6 +36,6 @@ class TestBaseAuthenticationPolicy:
         with pytest.raises(
             AuthenticateMethodDidNotReturnObjectOfTypeUserContextException
         ):
-            self.policy.apply(self.dummy_user_context)
+            self.policy.apply(self.user_context)
 
         self.policy.authenticate.assert_called_once()
