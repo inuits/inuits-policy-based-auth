@@ -24,12 +24,8 @@ class TestPolicyFactory:
 
     def test_get_user_context_does_not_raise_error_if_user_context_is_present(self):
         self.policy_factory._user_context = self.user_context
-
-        try:
-            user_context = self.policy_factory.get_user_context()
-            assert user_context is self.policy_factory._user_context
-        except Exception as error:
-            pytest.fail(f"Unexpected error: {str(error)}")
+        user_context = self.policy_factory.get_user_context()
+        assert user_context is self.policy_factory._user_context
 
     def test_get_user_context_raises_NoUserContextException_if_user_context_is_none(
         self,
@@ -112,11 +108,11 @@ class TestPolicyFactory:
         policy_2.apply = spy_policy_2_apply
         self.policy_factory._authentication_policies = [policy_1, policy_2]
 
-        result = self.policy_factory._authenticate()
+        user_context = self.policy_factory._authenticate()
 
         spy_policy_1_apply.assert_called_once()
         spy_policy_2_apply.assert_called_once()
-        assert result is self.user_context
+        assert user_context is self.user_context
 
     def test_authorize_allows_access_and_stops_execution_if_policy_context_access_verdict_is_true(
         self,
