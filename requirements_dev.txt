@@ -1,4 +1,5 @@
 black==22.12.0
+coverage==7.0.5
 mypy-extensions==0.4.3
 pathspec==0.10.3
 platformdirs==2.6.2
