@@ -1,5 +1,4 @@
-import functools
-
+from functools import wraps
 from inuits_policy_based_auth.authentication.base_authentication_policy import (
     BaseAuthenticationPolicy,
 )
@@ -125,22 +124,29 @@ class PolicyFactory:
         """
 
         def decorator(decorated_function):
-            @functools.wraps(decorated_function)
+            @wraps(decorated_function)
             def decorated_function_wrapper(*args, **kwargs):
-                if len(self._authentication_policies) <= 0:
-                    raise NoAuthenticationPoliciesToApplyException()
-                if len(self._authorization_policies) <= 0:
-                    raise NoAuthorizationPoliciesToApplyException()
-
-                self._user_context = self.__authenticate()
-                self.__authorize(self._user_context, request_context)
+                self._apply_policies_decorated_function_wrapper_implementation(
+                    request_context
+                )
                 return decorated_function(*args, **kwargs)
 
             return decorated_function_wrapper
 
         return decorator
 
-    def __authenticate(self):
+    def _apply_policies_decorated_function_wrapper_implementation(
+        self, request_context: RequestContext
+    ):
+        if len(self._authentication_policies) <= 0:
+            raise NoAuthenticationPoliciesToApplyException()
+        if len(self._authorization_policies) <= 0:
+            raise NoAuthorizationPoliciesToApplyException()
+
+        self._user_context = self._authenticate()
+        self._authorize(self._user_context, request_context)
+
+    def _authenticate(self):
         user_context = UserContext()
 
         for policy in self._authentication_policies:
@@ -148,7 +154,7 @@ class PolicyFactory:
 
         return user_context
 
-    def __authorize(self, user_context: UserContext, request_context: RequestContext):
+    def _authorize(self, user_context: UserContext, request_context: RequestContext):
         policy_context = PolicyContext()
 
         for policy in self._authorization_policies:
