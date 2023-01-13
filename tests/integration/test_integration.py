@@ -9,7 +9,7 @@ class TestIntegration:
     @classmethod
     def setup_class(cls):
         env = environ.copy()
-        env["FLASK_APP"] = "tests/integration/example_api/app.py"
+        env["FLASK_APP"] = "tests/integration/test_api/app.py"
         cls.flask_process = Popen(
             ["flask", "run", "--host", "localhost", "--port", "5000"],
             env=env,
