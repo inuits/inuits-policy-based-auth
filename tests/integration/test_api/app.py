@@ -15,7 +15,15 @@ load_policies(policy_factory)
 class Entity(Resource):
     @policy_factory.apply_policies(RequestContext(request))
     def get(self):
-        return make_response("Welcome to inuits_policy_based_auth test API.", 200)
+        user_context = policy_factory.get_user_context()
+        response_body = {
+            "auth_objects": user_context.auth_objects,
+            "email": user_context.email,
+            "tenant": user_context.tenant,
+            "roles": user_context.roles,
+            "scopes": user_context.scopes,
+        }
+        return make_response(response_body, 200)
 
 
 api.add_resource(Entity, "/")

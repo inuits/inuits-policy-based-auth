@@ -7,13 +7,8 @@
     "author_email": "developers@inuits.eu",
     "license": "GPLv2",
     "policies": {
-      "authentication": [
-        "token_based_policies.authlib_flask_oauth2_policy"
-      ],
-      "authorization": [
-        "super_admin_policy",
-        "open_data_policy"
-      ]
+      "authentication": [],
+      "authorization": []
     }
   }
 }
