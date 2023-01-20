@@ -11,8 +11,7 @@ from inuits_policy_based_auth.exceptions import (
 def load_policies(policy_factory: PolicyFactory):
     apps = {}
 
-    configuration_file_name = "tests/integration/test_api/configuration.json"
-    with open(configuration_file_name) as configuration_file:
+    with open(str(os.getenv("TEST_API_CONFIGURATION")), "r") as configuration_file:
         apps = json.load(configuration_file)
 
     for app in apps:
@@ -57,7 +56,7 @@ def __instantiate_authentication_policy(policy_module_name, policy, logger):
             os.getenv("STATIC_ISSUER", False),
             os.getenv("STATIC_PUBLIC_KEY", False),
             os.getenv("REALMS", "").split(","),
-            os.getenv("ROLE_PERMISSION_FILE", "role_permission.json"),
+            os.getenv("ROLE_PERMISSION_FILE", os.getenv("TEST_API_SCOPES")),
             os.getenv("REMOTE_TOKEN_VALIDATION", False) in ["True", "true", True],
             os.getenv("REMOTE_PUBLIC_KEY", False),
         )

@@ -10,6 +10,7 @@ load_dotenv()
 
 class TestSuperAdminPolicy:
     ENDPOINT = str(os.getenv("ENDPOINT"))
+    SUPER_ADMIN_ROLE = "role_super_admin"
 
     @classmethod
     def setup_class(cls):
@@ -38,7 +39,7 @@ class TestSuperAdminPolicy:
         assert response.status_code == 403
 
     def test_get_request_with_correct_role_returns_200(self):
-        payload = self._get_payload(["role_super_admin"])
+        payload = self._get_payload([self.SUPER_ADMIN_ROLE])
         headers = custom_token.get_authorization_header(payload)
 
         response = requests.get(self.ENDPOINT, headers=headers)
@@ -46,7 +47,7 @@ class TestSuperAdminPolicy:
         assert response.status_code == 200
 
     def test_post_request_with_correct_role_returns_201(self):
-        payload = self._get_payload(["role_super_admin"])
+        payload = self._get_payload([self.SUPER_ADMIN_ROLE])
         headers = custom_token.get_authorization_header(payload)
 
         response = requests.post(self.ENDPOINT, headers=headers)

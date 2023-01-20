@@ -1,0 +1,84 @@
+{
+  "regular_user": [
+    "add-entity-mediafiles",
+    "add-entity-metadata",
+    "add-entity-relations",
+    "create-entity",
+    "create-entity-mediafile",
+    "create-mediafile",
+    "delete-entity",
+    "delete-entity-metadata-key",
+    "delete-entity-relations",
+    "delete-mediafile",
+    "delete-saved-search",
+    "filter-on-description",
+    "filter-on-filename",
+    "filter-on-material",
+    "filter-on-mediafiles",
+    "filter-on-museum",
+    "filter-on-object-number",
+    "filter-on-photographer",
+    "filter-on-publication-status",
+    "filter-on-publication-status-mediafile",
+    "filter-on-rights",
+    "filter-on-skos:note",
+    "filter-on-source",
+    "filter-on-title",
+    "filter-on-type",
+    "get-entity-permissions",
+    "get-entity-sixth-collection-entity-id",
+    "get-entity-sixth-collection-id",
+    "get-mediafile-assets",
+    "get-mediafile-copyright",
+    "get-story-box",
+    "link-story-box",
+    "patch-entity",
+    "patch-entity-metadata",
+    "patch-entity-relations",
+    "patch-mediafile",
+    "patch-saved-search",
+    "publish-story-box",
+    "read-config",
+    "read-entity",
+    "read-entity-all",
+    "read-entity-detail-all",
+    "read-entity-mediafiles-all",
+    "read-entity-metadata-all",
+    "read-entity-metadata-key-all",
+    "read-entity-relations-all",
+    "read-job",
+    "read-mediafile",
+    "read-saved-search",
+    "read-saved-search-detail",
+    "search-advanced",
+    "search-collection",
+    "set-entity-primary-mediafile",
+    "set-entity-primary-thumbnail",
+    "subtitles-story-box",
+    "update-entity",
+    "update-entity-metadata",
+    "update-entity-relations",
+    "update-mediafile",
+    "update-saved-search",
+    "get-user-permissions"
+  ],
+  "datateam": [
+    "all-sixth",
+    "can-start-import"
+  ],
+  "archiefgent": [
+    "all-archiefgent"
+  ],
+  "dmg": [
+    "all-dmg"
+  ],
+  "hva": [
+    "all-hva"
+  ],
+  "industriemuseum": [
+    "all-industriemuseum"
+  ],
+  "stam": [
+    "all-stam"
+  ]
+}
