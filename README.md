@@ -1,4 +1,4 @@
-# inuits-policy-based-auth
+# inuits_policy_based_auth
 inuits_policy_based_auth is a python package for securing API endpoints based on policies.
 
 ## Installation
