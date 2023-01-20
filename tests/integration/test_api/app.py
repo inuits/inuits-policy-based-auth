@@ -25,5 +25,17 @@ class Entity(Resource):
         }
         return make_response(response_body, 200)
 
+    @policy_factory.apply_policies(RequestContext(request))
+    def post(self):
+        user_context = policy_factory.get_user_context()
+        response_body = {
+            "auth_objects": user_context.auth_objects,
+            "email": user_context.email,
+            "tenant": user_context.tenant,
+            "roles": user_context.roles,
+            "scopes": user_context.scopes,
+        }
+        return make_response(response_body, 201)
+
 
 api.add_resource(Entity, "/")
