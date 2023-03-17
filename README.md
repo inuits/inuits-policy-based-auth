@@ -183,10 +183,5 @@ class Entity():
         ...
 ```
 
-## Bugs and Feature requests
-**!!! Breaking changes are to be expected !!!**
-
-This package is in early stages of development and will require a few more iterations to be considered stable.
-
 ## Contributing
 Do not hesitate to open issues and create pull requests.
