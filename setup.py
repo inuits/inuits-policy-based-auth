@@ -1,4 +1,4 @@
-from distutils.core import setup
+from setuptools import setup, find_packages
 
 
 with open("README.md", "r") as readme_file:
@@ -27,7 +27,7 @@ setup(
     long_description=long_desc,
     long_description_content_type="text/markdown",
     name="inuits_policy_based_auth",
-    packages=["inuits_policy_based_auth"],
+    packages=find_packages(),
     provides=["inuits_policy_based_auth"],
-    version="1.0.2",
+    version="1.0.3",
 )
