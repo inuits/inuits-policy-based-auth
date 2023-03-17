@@ -25,8 +25,9 @@ setup(
     ],
     license="GPLv2",
     long_description=long_desc,
+    long_description_content_type="text/markdown",
     name="inuits_policy_based_auth",
     packages=["inuits_policy_based_auth"],
     provides=["inuits_policy_based_auth"],
-    version="1.0.0",
+    version="1.0.0"
 )
