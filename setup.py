@@ -27,7 +27,7 @@ setup(
     long_description=long_desc,
     long_description_content_type="text/markdown",
     name="inuits_policy_based_auth",
-    packages=find_packages(),
+    packages=find_packages(exclude=["tests"]),
     provides=["inuits_policy_based_auth"],
     version="1.0.3",
 )
