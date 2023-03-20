@@ -18,7 +18,7 @@ class TestPolicyFactory:
     def setup_class(cls):
         flask_process.set_app_policies(
             ["token_based_policies.authlib_flask_oauth2_policy"],
-            ["super_admin_policy", "open_data_policy"],
+            ["super_admin_policy", "scope_based_policy", "open_data_policy"],
         )
         flask_process.start()
 
