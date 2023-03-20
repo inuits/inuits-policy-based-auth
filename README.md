@@ -183,5 +183,16 @@ class Entity():
         ...
 ```
 
+You can also use the ```authenticate``` decorator to only apply authentication policies:
+```python
+from app import policy_factory
+
+
+class Entity():
+    @policy_factory.authenticate()
+    def get(self):
+        ...
+```
+
 ## Contributing
 Do not hesitate to open issues and create pull requests.

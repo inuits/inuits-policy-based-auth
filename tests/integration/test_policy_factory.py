@@ -25,6 +25,10 @@ class TestPolicyFactory:
     def setup_method(self):
         flask_process.assert_running()
 
+    def test_request_without_token_returns_401(self):
+        response = requests.put(self.ENDPOINT)
+        assert response.status_code == 401
+
     def test_request_with_wrong_token_payload_structure_returns_403(self):
         payload = {
             "azp": "inuits-policy-based-auth",
@@ -48,6 +52,14 @@ class TestPolicyFactory:
         response = requests.post(self.ENDPOINT, headers=headers)
 
         assert response.status_code == 403
+
+    def test_request_with_token_returns_200(self):
+        payload = self._get_payload([self.REGULAR_USER_ROLE])
+        headers = custom_token.get_authorization_header(payload)
+
+        response = requests.put(self.ENDPOINT, headers=headers)
+
+        assert response.status_code == 200
 
     def test_super_admin_gets_correct_user_context(self):
         payload = self._get_payload([self.SUPER_ADMIN_ROLE])

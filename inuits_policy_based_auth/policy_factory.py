@@ -94,6 +94,35 @@ class PolicyFactory:
 
         self._authorization_policies.append(policy)
 
+    def authenticate(self):
+        """Applies registered authentication policies to determine access.
+
+        Returns
+        -------
+        function
+            a decorator to decorate endpoints with
+
+        Raises
+        ------
+        NoAuthenticationPoliciesToApplyException
+            if no authentication policies are registered
+        Unauthorized
+            if user is not authenticated
+        """
+
+        def decorator(decorated_function):
+            @wraps(decorated_function)
+            def decorated_function_wrapper(*args, **kwargs):
+                if len(self._authentication_policies) <= 0:
+                    raise NoAuthenticationPoliciesToApplyException()
+
+                self._user_context = self._authenticate()
+                return decorated_function(*args, **kwargs)
+
+            return decorated_function_wrapper
+
+        return decorator
+
     def apply_policies(self, request_context: RequestContext):
         """Applies registered policies to determine access.
 
