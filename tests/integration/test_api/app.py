@@ -13,7 +13,9 @@ load_policies(policy_factory)
 
 
 class Entity(Resource):
-    @policy_factory.apply_policies(RequestContext(request))
+    @policy_factory.apply_policies(
+        RequestContext(request, ["read-entity", "update-entity"])
+    )
     def get(self):
         user_context = policy_factory.get_user_context()
         response_body = {
@@ -25,7 +27,7 @@ class Entity(Resource):
         }
         return make_response(response_body, 200)
 
-    @policy_factory.apply_policies(RequestContext(request))
+    @policy_factory.apply_policies(RequestContext(request, ["create-entity"]))
     def post(self):
         user_context = policy_factory.get_user_context()
         response_body = {

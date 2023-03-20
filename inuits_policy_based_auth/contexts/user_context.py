@@ -73,6 +73,10 @@ class UserContext:
 
         return self._scopes
 
+    @scopes.setter
+    def scopes(self, scopes: list[str]):
+        self._scopes = scopes
+
     def __flatten_auth_object_generator(self, data: MutableMapping, parent_key):
         for key, value in data.items():
             flattened_key = parent_key + "." + key if parent_key else key
