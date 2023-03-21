@@ -54,7 +54,7 @@ class AuthlibFlaskOauth2Policy(BaseAuthenticationPolicy):
     def authenticate(self, user_context):
         try:
             token = self._resource_protector.acquire_token()
-            user_context.auth_objects.append(token)
+            user_context.auth_objects.add_key_value_pair("token", token)
             flattened_token = user_context.flatten_auth_object(token)
 
             user_context.email = flattened_token.get("email", "")

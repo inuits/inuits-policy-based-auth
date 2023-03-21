@@ -19,7 +19,7 @@ class Entity(Resource):
     def get(self):
         user_context = policy_factory.get_user_context()
         response_body = {
-            "auth_objects": user_context.auth_objects,
+            "auth_objects": user_context.auth_objects.get("token"),
             "email": user_context.email,
             "tenant": user_context.tenant,
             "roles": user_context.roles,
@@ -31,7 +31,7 @@ class Entity(Resource):
     def post(self):
         user_context = policy_factory.get_user_context()
         response_body = {
-            "auth_objects": user_context.auth_objects,
+            "auth_objects": user_context.auth_objects.get("token"),
             "email": user_context.email,
             "tenant": user_context.tenant,
             "roles": user_context.roles,
@@ -43,7 +43,7 @@ class Entity(Resource):
     def put(self):
         user_context = policy_factory.get_user_context()
         response_body = {
-            "auth_objects": user_context.auth_objects,
+            "auth_objects": user_context.auth_objects.get("token"),
             "email": user_context.email,
             "tenant": user_context.tenant,
             "roles": user_context.roles,

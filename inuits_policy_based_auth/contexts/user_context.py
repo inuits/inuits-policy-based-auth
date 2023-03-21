@@ -1,4 +1,5 @@
 from collections.abc import MutableMapping
+from inuits_policy_based_auth.helpers.immutable_dict import ImmutableDict
 
 
 class UserContext:
@@ -7,8 +8,8 @@ class UserContext:
 
     Properties
     ----------
-    auth_objects : list[Unknown]
-        the objects used to authenticate a user, for example a token
+    auth_objects : ImmutableDict
+        an immutable dict containing objects used to authenticate a user, for example a token
     email : str
         the email of the authenticated user
     tenant : str
@@ -25,7 +26,7 @@ class UserContext:
     """
 
     def __init__(self):
-        self._auth_objects = []
+        self._auth_objects = ImmutableDict({})
         self._email = ""
         self._tenant = ""
         self._roles = []
@@ -33,7 +34,7 @@ class UserContext:
 
     @property
     def auth_objects(self):
-        """The objects used to authenticate a user, for example a token."""
+        """An immutable dict containing objects used to authenticate a user, for example a token."""
 
         return self._auth_objects
 
