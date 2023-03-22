@@ -1,5 +1,6 @@
 import inspect
 
+
 class ImmutableDict:
     """
     A dictionary-like object that cannot be modified after initialization.
