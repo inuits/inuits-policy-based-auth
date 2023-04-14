@@ -1,3 +1,7 @@
+import inspect
+import os
+import re as regex
+
 from functools import wraps
 from inuits_policy_based_auth.authentication.base_authentication_policy import (
     BaseAuthenticationPolicy,
@@ -116,7 +120,23 @@ class PolicyFactory:
                 if len(self._authentication_policies) <= 0:
                     raise NoAuthenticationPoliciesToApplyException()
 
-                self._user_context = self._authenticate()
+                if self.__is_test_environment(decorated_function):
+                    import traceback
+                    from flask import make_response
+
+                    try:
+                        self._user_context = self._authenticate()
+                    except TypeError as error:
+                        return make_response(
+                            {
+                                "message": str(error),
+                                "stacktrace": traceback.format_exc(),
+                            },
+                            500,
+                        )
+                else:
+                    self._user_context = self._authenticate()
+
                 return decorated_function(*args, **kwargs)
 
             return decorated_function_wrapper
@@ -155,9 +175,27 @@ class PolicyFactory:
         def decorator(decorated_function):
             @wraps(decorated_function)
             def decorated_function_wrapper(*args, **kwargs):
-                self._apply_policies_decorated_function_wrapper_implementation(
-                    request_context
-                )
+                if self.__is_test_environment(decorated_function):
+                    import traceback
+                    from flask import make_response
+
+                    try:
+                        self._apply_policies_decorated_function_wrapper_implementation(
+                            request_context
+                        )
+                    except TypeError as error:
+                        return make_response(
+                            {
+                                "message": str(error),
+                                "stacktrace": traceback.format_exc(),
+                            },
+                            500,
+                        )
+                else:
+                    self._apply_policies_decorated_function_wrapper_implementation(
+                        request_context
+                    )
+
                 return decorated_function(*args, **kwargs)
 
             return decorated_function_wrapper
@@ -195,3 +233,19 @@ class PolicyFactory:
                 break
 
         raise Forbidden()
+
+    def __is_test_environment(self, decorated_function) -> bool:
+        decorated_function_module = inspect.getmodule(decorated_function)
+        if decorated_function_module:
+            return (
+                decorated_function_module.__name__ == "tests.integration.test_api.app"
+                and (
+                    regex.match(
+                        rf".*/inuits-policy-based-auth/{os.getenv('FLASK_APP')}$",
+                        str(decorated_function_module.__file__),
+                    )
+                    != None
+                )
+            )
+
+        return False
