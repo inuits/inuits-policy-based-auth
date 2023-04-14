@@ -38,7 +38,7 @@ def _overwrite_configuration_file(
     with open(str(os.getenv("TEST_API_CONFIGURATION")), "r+") as configuration_file:
         configuration = json.load(configuration_file)
 
-        for app in ["app_1", "app_2"]:
+        for app in ["integration"]:
             if authentication and authorization:
                 configuration[app]["policies"]["authentication"].extend(authentication)
                 configuration[app]["policies"]["authorization"].extend(authorization)

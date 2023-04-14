@@ -1,5 +1,5 @@
 {
-  "app_1": {
+  "integration": {
     "name": "app_1",
     "description": "This is a test app",
     "version": 1.0,
@@ -11,8 +11,8 @@
       "authorization": []
     }
   },
-  "app_2": {
-    "name": "app_1",
+  "unit": {
+    "name": "app_2",
     "description": "This is a test app",
     "version": 1.0,
     "author": "Inuits",
