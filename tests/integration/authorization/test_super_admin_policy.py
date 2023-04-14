@@ -10,7 +10,7 @@ load_dotenv()
 
 class TestSuperAdminPolicy:
     ENDPOINT = str(os.getenv("ENDPOINT"))
-    SUPER_ADMIN_ROLE = "role_super_admin"
+    SUPER_ADMIN_ROLE = "super_admin"
 
     @classmethod
     def setup_class(cls):

@@ -12,7 +12,7 @@ class TestSuperAdminPolicy:
         self.request_context = RequestContext(None)
 
     def test_authorize_allows_access(self):
-        self.user_context.roles = ["role_super_admin"]
+        self.user_context.roles = ["super_admin"]
         policy_context = self.super_admin_policy.authorize(
             self.policy_context, self.user_context, self.request_context
         )
