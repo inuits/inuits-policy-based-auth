@@ -98,13 +98,12 @@ class UserContext:
         data : MutableMapping
             An object used to authenticate a user with, for example a token.
         parent_key : str, optional
-            A key that will be the root key for the flattened dict. If not specified,
-            the flattened dict will have no root key.
+            A key that will be the root key for the flattened dict.
 
         Returns
         -------
         dict
-            A flattened dictionary representation of the input object.
+            A flattened dictionary representation of the auth object.
         """
 
         return dict(self.__flatten_auth_object_generator(data, parent_key))
