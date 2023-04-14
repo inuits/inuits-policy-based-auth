@@ -7,14 +7,16 @@ from inuits_policy_based_auth.exceptions import (
 
 class BaseAuthorizationPolicy(ABC):
     """
-    An abstract class used as an interface for concrete implementations of authorization policies.
+    An abstract class used as an interface for concrete implementations of
+    authorization policies.
 
     Methods
     -------
-    apply(user_context, request_context)
-        applies the policy
-    authorize(user_context, request_context)
-        authorizes a user
+    apply(user_context, request_context):
+        Applies the policy.
+
+    authorize(user_context, request_context):
+        Authorizes a user.
     """
 
     def apply(
@@ -30,21 +32,24 @@ class BaseAuthorizationPolicy(ABC):
         Parameters
         ----------
         policy_context : PolicyContext
-            an object containing data about the context of an applied authorization policy
+            An object containing data about the context of an applied
+            authorization policy.
         user_context : UserContext
-            an object containing data about the authenticated user
+            An object containing data about the authenticated user.
         request_context : RequestContext
-            an object containing data about the context of a request
+            An object containing data about the context of a request.
 
         Returns
         -------
         PolicyContext
-            an object containing data about the context of an applied authorization policy
+            An object containing data about the context of an applied
+            authorization policy.
 
         Raises
         ------
-        AuthorizeMethodDidNotReturnObjectOfTypePolicyContextException
-            if the authorize method does not return an object of type PolicyContext
+        AuthorizeMethodDidNotReturnObjectOfTypePolicyContextException:
+            If the authorize method does not return an object of type
+            PolicyContext.
         """
 
         policy_context.access_verdict = None
@@ -66,16 +71,18 @@ class BaseAuthorizationPolicy(ABC):
         Parameters
         ----------
         policy_context : PolicyContext
-            an object containing data about the context of an applied authorization policy
+            An object containing data about the context of an applied
+            authorization policy.
         user_context : UserContext
-            an object containing data about the authenticated user
+            An object containing data about the authenticated user.
         request_context : RequestContext, optional
-            an object containing data about the context of a request
+            An object containing data about the context of a request.
 
         Returns
         -------
         PolicyContext
-            an object containing data about the context of an applied authorization policy
+            An object containing data about the context of an applied
+            authorization policy.
         """
 
         pass

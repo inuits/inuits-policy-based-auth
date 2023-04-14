@@ -1,15 +1,16 @@
 class RequestContext:
-    """
-    A class containing data about the context of a request.
+    """A class containing data about the context of a request.
 
-    The data provided in this class is used in policies to determine whether a user is authenticated/authorized.
+    The data provided in this class is used in policies to determine whether a
+    user is authenticated/authorized.
 
     Properties
     ----------
     http_request : Unknown
-        an HTTP request that is used by policies to determine access to a resource
+        An HTTP request used by policies to determine access to a resource.
     resource_scopes : list[str], optional
-        scopes a user must have for accessing a protected resource when policies rely on scope-based authorization
+        Scopes a user must have for accessing a protected resource when policies
+        rely on scope-based authorization.
     """
 
     def __init__(self, http_request, resource_scopes: list[str] = []):
@@ -17,9 +18,10 @@ class RequestContext:
         Parameters
         ----------
         http_request : Unknown
-            an HTTP request that is used by policies to determine access to a resource.
-        resource_scopes : str, optional
-            scopes a user must have for accessing a protected resource when policies rely on scope-based authorization
+            An HTTP request used by policies to determine access to a resource.
+        resource_scopes : list[str], optional
+            Scopes a user must have for accessing a protected resource when policies
+            rely on scope-based authorization.
         """
 
         self._http_request = http_request
@@ -27,12 +29,17 @@ class RequestContext:
 
     @property
     def http_request(self):
-        """An HTTP request that is used by policies to determine access to a resource."""
+        """
+        An HTTP request used by policies to determine access to a resource.
+        """
 
         return self._http_request
 
     @property
     def resource_scopes(self):
-        """A scope a user must have for accessing a protected resource when policies rely on scope-based authorization."""
+        """
+        Scopes a user must have for accessing a protected resource when policies
+        rely on scope-based authorization.
+        """
 
         return self._resource_scopes

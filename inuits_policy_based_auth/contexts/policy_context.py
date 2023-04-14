@@ -2,12 +2,12 @@ class PolicyContext:
     """
     A class containing data about the context of an applied authorization policy.
 
-    Authorization policies use these class to influence access determination.
+    Authorization policies use this class to influence access determination.
 
     Properties
     ----------
     access_verdict : bool | None
-        the verdict that will influence access determination
+        The verdict that will influence access determination.
     """
 
     def __init__(self):

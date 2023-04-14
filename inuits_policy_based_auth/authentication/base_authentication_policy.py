@@ -7,14 +7,16 @@ from inuits_policy_based_auth.exceptions import (
 
 class BaseAuthenticationPolicy(ABC):
     """
-    An abstract class used as an interface for concrete implementations of authentication policies.
+    An abstract class used as an interface for concrete implementations of
+    authentication policies.
 
     Methods
     -------
-    apply(user_context)
-        applies the policy
-    authenticate(user_context)
-        authenticates a user
+    apply(user_context):
+        Applies the policy.
+
+    authenticate(user_context):
+        Authenticates a user.
     """
 
     def apply(self, user_context: UserContext) -> UserContext:
@@ -23,19 +25,19 @@ class BaseAuthenticationPolicy(ABC):
         Parameters
         ----------
         user_context : UserContext
-            an object containing data about the authenticated user
+            An object containing data about the authenticated user.
 
         Returns
         -------
         UserContext
-            an object containing data about the authenticated user
+            An object containing data about the authenticated user.
 
         Raises
         ------
-        AuthenticateMethodDidNotReturnObjectOfTypeUserContextException
-            if the authenticate method does not return an object of type UserContext
-        Unauthorized
-            if the user is not authenticated
+        AuthenticateMethodDidNotReturnObjectOfTypeUserContextException:
+            If the authenticate method does not return an object of type UserContext.
+        Unauthorized:
+            If the user is not authenticated.
         """
 
         user_context = self.authenticate(user_context)
@@ -51,17 +53,17 @@ class BaseAuthenticationPolicy(ABC):
         Parameters
         ----------
         user_context : UserContext
-            an object containing data about the authenticated user
+            An object containing data about the user to be authenticated.
 
         Returns
         -------
         UserContext
-            an object containing data about the authenticated user
+            An object containing data about the authenticated user.
 
         Raises
         ------
-        Unauthorized
-            if the user is not authenticated
+        Unauthorized:
+            If the user is not authenticated.
         """
 
         pass

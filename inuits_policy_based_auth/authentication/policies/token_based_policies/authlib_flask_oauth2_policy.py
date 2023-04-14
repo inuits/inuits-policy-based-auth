@@ -17,7 +17,8 @@ from werkzeug.exceptions import Unauthorized
 
 class AuthlibFlaskOauth2Policy(BaseAuthenticationPolicy):
     """
-    An authentication policy that uses Authlib Flask OAuth2 to do token-based authentication.
+    An authentication policy that uses Authlib Flask OAuth2 to do token-based
+    authentication.
     """
 
     def __init__(

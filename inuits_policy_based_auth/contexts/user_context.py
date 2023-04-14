@@ -9,20 +9,21 @@ class UserContext:
     Properties
     ----------
     auth_objects : ImmutableDict
-        an immutable dict containing objects used to authenticate a user, for example a token
+        An immutable dict containing objects used to authenticate a user,
+        for example a token.
     email : str
-        the email of the authenticated user
+        The email of the authenticated user.
     tenant : str
-        the tenant of the authenticated user
+        The tenant of the authenticated user.
     roles : list[str]
-        the roles of the authenticated user
+        The roles of the authenticated user.
     scopes : list[str]
-        the scopes of the authenticated user
+        The scopes of the authenticated user.
 
     Methods
     -------
     flatten_auth_object(data, parent_key)
-        flattens the auth object to be a dict of one level deep
+        Flattens the auth object to be a dict of one level deep.
     """
 
     def __init__(self):
@@ -34,7 +35,10 @@ class UserContext:
 
     @property
     def auth_objects(self):
-        """An immutable dict containing objects used to authenticate a user, for example a token."""
+        """
+        An immutable dict containing objects used to authenticate a user,
+        for example a token.
+        """
 
         return self._auth_objects
 
@@ -92,14 +96,15 @@ class UserContext:
         Parameters
         ----------
         data : MutableMapping
-            an object used to authenticate a user with, for example a token
+            An object used to authenticate a user with, for example a token.
         parent_key : str, optional
-            a key that will be the root key
+            A key that will be the root key for the flattened dict. If not specified,
+            the flattened dict will have no root key.
 
         Returns
         -------
-        dict[Unknown, Unknown]
-            the flattened auth object
+        dict
+            A flattened dictionary representation of the input object.
         """
 
         return dict(self.__flatten_auth_object_generator(data, parent_key))
