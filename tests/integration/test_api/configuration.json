@@ -1,8 +1,20 @@
 {
-  "test_api": {
-    "name": "test_api",
-    "description": "",
-    "version": 0.1,
+  "app_1": {
+    "name": "app_1",
+    "description": "This is a test app",
+    "version": 1.0,
+    "author": "Inuits",
+    "author_email": "developers@inuits.eu",
+    "license": "GPLv2",
+    "policies": {
+      "authentication": [],
+      "authorization": []
+    }
+  },
+  "app_2": {
+    "name": "app_1",
+    "description": "This is a test app",
+    "version": 1.0,
     "author": "Inuits",
     "author_email": "developers@inuits.eu",
     "license": "GPLv2",
