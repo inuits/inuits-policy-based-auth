@@ -238,14 +238,11 @@ class PolicyFactory:
         decorated_function_module = inspect.getmodule(decorated_function)
         if decorated_function_module:
             return (
-                decorated_function_module.__name__ == "tests.integration.test_api.app"
-                and (
-                    regex.match(
-                        rf".*/inuits-policy-based-auth/{os.getenv('FLASK_APP')}$",
-                        str(decorated_function_module.__file__),
-                    )
-                    != None
+                regex.match(
+                    rf".*/inuits-policy-based-auth/{os.getenv('FLASK_APP')}$",
+                    str(decorated_function_module.__file__),
                 )
+                != None
             )
 
         return False
