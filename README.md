@@ -8,12 +8,12 @@ pip install inuits-policy-based-auth
 ```
 
 ## Getting Started
-In your app, instantiate the PolicyFactory by passing a logger as argument. For example, in app.py (all examples given are based on a Python Flask app).
+Instantiate the PolicyFactory in you app, for example in app.py (all examples given are based on a Python Flask app).
 ```python
 from inuits_policy_based_auth import PolicyFactory
 
 
-policy_factory = PolicyFactory(logger)
+policy_factory = PolicyFactory()
 ```
 ### Manually loading policies
 Importing and registering policies can be done manually.
@@ -26,10 +26,10 @@ from inuits_policy_based_auth.authorization.policies.super_admin_policy import (
 )
 
 
-policy_factory.register_authentication_policy(AuthlibFlaskOauth2Policy(...))
-policy_factory.register_authorization_policy(SuperAdminPolicy())
+policy_factory.register_authentication_policy("[app_name]", AuthlibFlaskOauth2Policy(...))
+policy_factory.register_authorization_policy("[app_name]", SuperAdminPolicy())
 ```
-However, it is strongly recommended to load policies dynamically as this will allow you to make use of the full potential of this package.
+However, it is recommended to load policies dynamically as this will allow you to make use of the full potential of this package.
 
 ### Dynamically loading policies
 You can write a loader which loads policies dynamically based on a configuration file.
@@ -37,13 +37,18 @@ You can write a loader which loads policies dynamically based on a configuration
 Example configuration file:
 ```json
 {
-  "[app_name]": {
-    "name": "[app_name]",
-    "description": "",
-    "version": 0.1,
-    "author": "Inuits",
-    "author_email": "developers@inuits.eu",
-    "license": "GPLv2",
+  "[app_name_1]": {
+    "policies": {
+      "authentication": [
+        "token_based_policies.authlib_flask_oauth2_policy"
+      ],
+      "authorization": [
+        "super_admin_policy",
+        "scope_based_policy"
+      ]
+    }
+  },
+  "[app_name_2]": {
     "policies": {
       "authentication": [
         "token_based_policies.authlib_flask_oauth2_policy"
@@ -67,12 +72,13 @@ from inuits_policy_based_auth import PolicyFactory
 from inuits_policy_based_auth.exceptions import (
     PolicyFactoryException,
 )
+from logging import Logger
 
 
-def load_policies(policy_factory: PolicyFactory):
+def load_policies(policy_factory: PolicyFactory, logger: Logger):
     apps = {}
 
-    configuration_file_name = os.getenv("CONFIGURATION_FILE_NAME") or ""
+    configuration_file_name = os.getenv("[CONFIGURATION_FILE_NAME]") or ""
     with open(configuration_file_name) as configuration_file:
         apps = json.load(configuration_file)
 
@@ -82,18 +88,24 @@ def load_policies(policy_factory: PolicyFactory):
             for policy_module_name in apps[app]["policies"].get(auth_type):
                 policy = __get_class(app, auth_type, policy_module_name)
                 policy = __instantiate_authentication_policy(
-                    policy_module_name, policy, policy_factory.logger
+                    policy_module_name, policy, logger
                 )
-                policy_factory.register_authentication_policy(policy)
+                policy_factory.register_authentication_policy(
+                    f"apps.{app}", policy
+                )
 
             auth_type = "authorization"
             for policy_module_name in apps[app]["policies"].get(auth_type):
                 policy = __get_class(app, auth_type, policy_module_name)
-                policy_factory.register_authorization_policy(policy())
+                policy_factory.register_authorization_policy(
+                    f"apps.{app}", policy()
+                )
         except Exception as error:
             raise PolicyFactoryException(
                 f"Policy factory was not configured correctly: {str(error)}"
             ).with_traceback(error.__traceback__)
+
+    policy_factory.set_fallback_key_for_policy_mapping("apps.[app_name]")
 
 
 def __get_class(app, auth_type, policy_module_name):
@@ -111,14 +123,14 @@ def __get_class(app, auth_type, policy_module_name):
     return policy
 
 
-def __instantiate_authentication_policy(policy_module_name, policy, logger):
+def __instantiate_authentication_policy(policy_module_name, policy, logger: Logger):
     if policy_module_name == "token_based_policies.authlib_flask_oauth2_policy":
         return policy(
             logger,
             os.getenv("STATIC_ISSUER", False),
             os.getenv("STATIC_PUBLIC_KEY", False),
             os.getenv("REALMS", "").split(","),
-            os.getenv("ROLE_PERMISSION_FILE", "role_permission.json"),
+            os.getenv("ROLE_SCOPE_MAPPING", os.getenv("TEST_API_SCOPES")),
             os.getenv("REMOTE_TOKEN_VALIDATION", False) in ["True", "true", True],
             os.getenv("REMOTE_PUBLIC_KEY", False),
         )
@@ -129,9 +141,10 @@ def __instantiate_authentication_policy(policy_module_name, policy, logger):
 Now you can import the loader in app.py and pass ```policy_factory``` as an argument to it.
 ```python
 from apps.policy_loader import load_policies
+from logging import Logger
 
 
-load_policies(policy_factory)
+load_policies(policy_factory, Logger(""))
 ```
 As you can see in these examples, dynamically loading policies will allow you to add new policies and override existing ones, which makes this package highly customizable and generic.
 
@@ -178,7 +191,9 @@ from inuits_policy_based_auth import RequestContext
 
 
 class Entity():
-    @policy_factory.apply_policies(RequestContext(request))
+    @policy_factory.apply_policies(
+        RequestContext(request, ["[scope_1]", "[scope_2]"])
+    )
     def get(self):
         ...
 ```
