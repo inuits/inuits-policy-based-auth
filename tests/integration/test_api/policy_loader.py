@@ -1,5 +1,4 @@
 import json
-import logging
 import os
 
 from importlib import import_module
@@ -7,9 +6,10 @@ from inuits_policy_based_auth import PolicyFactory
 from inuits_policy_based_auth.exceptions import (
     PolicyFactoryException,
 )
+from logging import Logger
 
 
-def load_policies(policy_factory: PolicyFactory, logger: logging.Logger):
+def load_policies(policy_factory: PolicyFactory, logger: Logger):
     apps = {}
 
     with open(str(os.getenv("TEST_API_CONFIGURATION")), "r") as configuration_file:
@@ -56,9 +56,7 @@ def __get_class(app, auth_type, policy_module_name):
     return policy
 
 
-def __instantiate_authentication_policy(
-    policy_module_name, policy, logger: logging.Logger
-):
+def __instantiate_authentication_policy(policy_module_name, policy, logger: Logger):
     if policy_module_name == "token_based_policies.authlib_flask_oauth2_policy":
         return policy(
             logger,

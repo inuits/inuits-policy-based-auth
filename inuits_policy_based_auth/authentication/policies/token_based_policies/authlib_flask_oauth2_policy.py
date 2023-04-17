@@ -1,6 +1,5 @@
 import base64
 import json
-import logging
 import requests
 
 from abc import ABC
@@ -13,6 +12,7 @@ from datetime import datetime
 from inuits_policy_based_auth.authentication.base_authentication_policy import (
     BaseAuthenticationPolicy,
 )
+from logging import Logger
 from werkzeug.exceptions import Unauthorized
 
 
@@ -23,7 +23,7 @@ class AuthlibFlaskOauth2Policy(BaseAuthenticationPolicy):
 
     Parameters:
     -----------
-    logger : logging.Logger
+    logger : Logger
         Logger object for logging authentication events and errors.
     static_issuer : str, optional
         A string representing the issuer of the JWT. This parameter is required
@@ -48,7 +48,7 @@ class AuthlibFlaskOauth2Policy(BaseAuthenticationPolicy):
 
     def __init__(
         self,
-        logger: logging.Logger,
+        logger: Logger,
         static_issuer=None,
         static_public_key=None,
         realms=None,
