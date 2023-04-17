@@ -16,7 +16,7 @@ from inuits_policy_based_auth import PolicyFactory
 policy_factory = PolicyFactory()
 ```
 ### Manually loading policies
-Importing and registering policies can be done manually.
+Importing and registering policies can be done manually. Don't forget to set a fallback key, this ensures that policies of a specific app are applied when the app cannot be determined automatically.
 ```python
 from inuits_policy_based_auth.authentication.policies.token_based_policies.authlib_flask_oauth2_policy import (
     AuthlibFlaskOauth2Policy,
@@ -26,8 +26,9 @@ from inuits_policy_based_auth.authorization.policies.super_admin_policy import (
 )
 
 
-policy_factory.register_authentication_policy("[app_name]", AuthlibFlaskOauth2Policy(...))
-policy_factory.register_authorization_policy("[app_name]", SuperAdminPolicy())
+policy_factory.register_authentication_policy("apps.[app_name]", AuthlibFlaskOauth2Policy(...))
+policy_factory.register_authorization_policy("apps.[app_name]", SuperAdminPolicy())
+policy_factory.set_fallback_key_for_policy_mapping("apps.[app_name]")
 ```
 However, it is recommended to load policies dynamically as this will allow you to make use of the full potential of this package.
 

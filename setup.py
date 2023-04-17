@@ -17,7 +17,7 @@ setup(
         "Authlib>=1.2.0",
         "cffi>=1.15.1",
         "click>=8.1.3",
-        "cryptography>=39.0.2",
+        "cryptography>=40.0.2",
         "MarkupSafe>=2.1.2",
         "pycparser>=2.21",
         "requests>=2.28.2",
@@ -29,5 +29,5 @@ setup(
     name="inuits_policy_based_auth",
     packages=find_packages(exclude=["tests"]),
     provides=["inuits_policy_based_auth"],
-    version="2.0.1",
+    version="3.0.0",
 )
