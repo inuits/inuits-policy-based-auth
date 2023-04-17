@@ -19,7 +19,7 @@ from werkzeug.exceptions import Forbidden
 
 class TestPolicyFactory:
     def setup_method(self):
-        self.policy_factory = PolicyFactory(None)
+        self.policy_factory = PolicyFactory()
         self.policy_context = PolicyContext()
         self.request_context = RequestContext(None)
         self.user_context = UserContext()

@@ -8,8 +8,8 @@ from logging import Logger
 app = Flask(__name__)
 api = Api(app)
 
-policy_factory = PolicyFactory(Logger(""))
-load_policies(policy_factory)
+policy_factory = PolicyFactory()
+load_policies(policy_factory, Logger(""))
 
 
 class Entity(Resource):

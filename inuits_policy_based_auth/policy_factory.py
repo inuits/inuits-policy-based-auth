@@ -25,11 +25,6 @@ class PolicyFactory:
     """
     A class used to apply policies.
 
-    Properties
-    ----------
-    logger : Unknown
-        A logger to log information.
-
     Methods
     -------
     get_user_context()
@@ -51,25 +46,11 @@ class PolicyFactory:
         of the module name of endpoints decorated by the policy factory.
     """
 
-    def __init__(self, logger):
-        """
-        Parameters
-        ----------
-        logger : Unknown
-            A logger to log information.
-        """
-
-        self._logger = logger
+    def __init__(self):
         self._user_context = None
         self._authentication_policies: dict[str, list[BaseAuthenticationPolicy]] = {}
         self._authorization_policies: dict[str, list[BaseAuthorizationPolicy]] = {}
         self._fallback_key_for_policy_mapping = ""
-
-    @property
-    def logger(self):
-        """A logger to log information."""
-
-        return self._logger
 
     def get_user_context(self) -> UserContext:
         """
