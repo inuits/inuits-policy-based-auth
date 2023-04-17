@@ -11,7 +11,7 @@ load_dotenv()
 
 class TestPolicyFactory:
     ENDPOINT = str(os.getenv("ENDPOINT"))
-    SUPER_ADMIN_ROLE = "role_super_admin"
+    SUPER_ADMIN_ROLE = "super_admin"
     REGULAR_USER_ROLE = "regular_user"
 
     @classmethod

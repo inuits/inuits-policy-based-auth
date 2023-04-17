@@ -40,7 +40,6 @@
     "publish-story-box",
     "read-config",
     "read-entity",
-    "read-entity-all",
     "read-entity-detail-all",
     "read-entity-mediafiles-all",
     "read-entity-metadata-all",
@@ -50,8 +49,6 @@
     "read-mediafile",
     "read-saved-search",
     "read-saved-search-detail",
-    "search-advanced",
-    "search-collection",
     "set-entity-primary-mediafile",
     "set-entity-primary-thumbnail",
     "subtitles-story-box",
@@ -59,26 +56,9 @@
     "update-entity-metadata",
     "update-entity-relations",
     "update-mediafile",
-    "update-saved-search",
-    "get-user-permissions"
+    "update-saved-search"
   ],
-  "datateam": [
-    "all-sixth",
-    "can-start-import"
-  ],
-  "archiefgent": [
-    "all-archiefgent"
-  ],
-  "dmg": [
-    "all-dmg"
-  ],
-  "hva": [
-    "all-hva"
-  ],
-  "industriemuseum": [
-    "all-industriemuseum"
-  ],
-  "stam": [
-    "all-stam"
+  "super_admin": [
+    "has-full-control"
   ]
 }

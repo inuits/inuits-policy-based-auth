@@ -3,6 +3,13 @@ class PolicyFactoryException(Exception):
         super().__init__(message)
 
 
+class NoUserContextException(PolicyFactoryException):
+    def __init__(self):
+        super().__init__(
+            "Cannot get an object of type UserContext if no policies are applied yet."
+        )
+
+
 class NoAuthenticationPoliciesToApplyException(PolicyFactoryException):
     def __init__(self):
         super().__init__("No authentication policies set to apply.")
@@ -13,11 +20,16 @@ class NoAuthorizationPoliciesToApplyException(PolicyFactoryException):
         super().__init__("No authorization policies set to apply.")
 
 
-class NoUserContextException(PolicyFactoryException):
-    def __init__(self):
+class InvalidFallbackKey(PolicyFactoryException):
+    def __init__(self, key: str):
         super().__init__(
-            "Cannot get an object of type UserContext if no policies are applied yet."
+            f"Provided fallback key '{key}' is not registered in either authentication policies, authorization policies, or both."
         )
+
+
+class NoFallbackKeySet(PolicyFactoryException):
+    def __init__(self):
+        super().__init__("No fallback key for policy mapping is set.")
 
 
 class PolicyException(Exception):

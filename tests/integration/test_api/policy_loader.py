@@ -22,16 +22,22 @@ def load_policies(policy_factory: PolicyFactory):
                 policy = __instantiate_authentication_policy(
                     policy_module_name, policy, policy_factory.logger
                 )
-                policy_factory.register_authentication_policy(policy)
+                policy_factory.register_authentication_policy(
+                    f"tests.integration.{app}", policy
+                )
 
             auth_type = "authorization"
             for policy_module_name in apps[app]["policies"].get(auth_type):
                 policy = __get_class(app, auth_type, policy_module_name)
-                policy_factory.register_authorization_policy(policy())
+                policy_factory.register_authorization_policy(
+                    f"tests.integration.{app}", policy()
+                )
         except Exception as error:
             raise PolicyFactoryException(
                 f"Policy factory was not configured correctly: {str(error)}"
             ).with_traceback(error.__traceback__)
+
+    policy_factory.set_fallback_key_for_policy_mapping("tests.integration.test_api")
 
 
 def __get_class(app, auth_type, policy_module_name):
@@ -56,7 +62,7 @@ def __instantiate_authentication_policy(policy_module_name, policy, logger):
             os.getenv("STATIC_ISSUER", False),
             os.getenv("STATIC_PUBLIC_KEY", False),
             os.getenv("REALMS", "").split(","),
-            os.getenv("ROLE_PERMISSION_FILE", os.getenv("TEST_API_SCOPES")),
+            os.getenv("ROLE_SCOPE_MAPPING", os.getenv("TEST_API_SCOPES")),
             os.getenv("REMOTE_TOKEN_VALIDATION", False) in ["True", "true", True],
             os.getenv("REMOTE_PUBLIC_KEY", False),
         )

@@ -22,7 +22,7 @@ class TestSuperAdminPolicy:
     def setup_method(self):
         flask_process.assert_running()
 
-    def test_token_without_role_super_admin_returns_403(self):
+    def test_token_without_super_admin_role_returns_403(self):
         payload = {"azp": "inuits-policy-based-auth"}
         headers = custom_token.get_authorization_header(payload)
 

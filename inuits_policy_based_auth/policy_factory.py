@@ -11,9 +11,12 @@ from inuits_policy_based_auth.authorization.base_authorization_policy import (
 )
 from inuits_policy_based_auth.contexts import PolicyContext, RequestContext, UserContext
 from inuits_policy_based_auth.exceptions import (
+    PolicyFactoryException,
+    NoUserContextException,
     NoAuthenticationPoliciesToApplyException,
     NoAuthorizationPoliciesToApplyException,
-    NoUserContextException,
+    InvalidFallbackKey,
+    NoFallbackKeySet,
 )
 from werkzeug.exceptions import Forbidden
 
@@ -25,18 +28,27 @@ class PolicyFactory:
     Properties
     ----------
     logger : Unknown
-        a logger to log information
+        A logger to log information.
 
     Methods
     -------
     get_user_context()
-        returns an object of type UserContext
-    register_authentication_policy(policy)
-        appends a policy to the list of authentication policies to be applied
-    register_authorization_policy(policy)
-        appends a policy to the list of authorization policies to be applied
+        Returns an object of type UserContext.
+
+    register_authentication_policy(key, policy)
+        Appends a policy to the list of authentication policies to be applied
+        mapped to a key.
+
+    register_authorization_policy(key, policy)
+        Appends a policy to the list of authorization policies to be applied
+        mapped to a key.
+
     apply_policies(request_context)
-        applies registered policies to determine access
+        Applies registered policies to determine access.
+
+    set_fallback_key_for_policy_mapping(key)
+        Sets a fallback key for policy mapping if no key matches the first part
+        of the module name of endpoints decorated by the policy factory.
     """
 
     def __init__(self, logger):
@@ -44,13 +56,14 @@ class PolicyFactory:
         Parameters
         ----------
         logger : Unknown
-            a logger to log information
+            A logger to log information.
         """
 
         self._logger = logger
         self._user_context = None
-        self._authentication_policies: list[BaseAuthenticationPolicy] = []
-        self._authorization_policies: list[BaseAuthorizationPolicy] = []
+        self._authentication_policies: dict[str, list[BaseAuthenticationPolicy]] = {}
+        self._authorization_policies: dict[str, list[BaseAuthorizationPolicy]] = {}
+        self._fallback_key_for_policy_mapping = ""
 
     @property
     def logger(self):
@@ -59,59 +72,109 @@ class PolicyFactory:
         return self._logger
 
     def get_user_context(self) -> UserContext:
-        """Returns an object of type UserContext.
+        """
+        Returns an object of type UserContext.
 
         Returns
         -------
         UserContext
-            an object containing data about the authenticated user
+            An object containing data about the authenticated user.
 
         Raises
         ------
         NoUserContextException
-            if there is no user auth data yet
+            If there is no user auth data yet.
         """
 
         if not self._user_context:
             raise NoUserContextException()
         return self._user_context
 
-    def register_authentication_policy(self, policy: BaseAuthenticationPolicy):
-        """Appends a policy to the list of authentication policies to be applied.
+    def register_authentication_policy(
+        self, key: str, policy: BaseAuthenticationPolicy
+    ):
+        """
+        Appends a policy to the list of authentication policies to be applied mapped
+        to a key.
 
         Parameters
         ----------
+        key : str
+            A key that matches the first part of the module name of endpoints decorated
+            by the policy factory.
         policy : BaseAuthenticationPolicy
-            a policy to be applied
+            A policy to be applied.
         """
 
-        self._authentication_policies.append(policy)
+        policies = self._authentication_policies.get(key)
+        if policies:
+            policies.append(policy)
+        else:
+            self._authentication_policies.update({key: [policy]})
 
-    def register_authorization_policy(self, policy: BaseAuthorizationPolicy):
-        """Appends a policy to the list of authorization policies to be applied.
+    def register_authorization_policy(self, key: str, policy: BaseAuthorizationPolicy):
+        """
+        Appends a policy to the list of authorization policies to be applied mapped
+        to a key.
 
         Parameters
         ----------
+        key : str
+            A key that matches the first part of the module name of endpoints decorated
+            by the policy factory.
         policy : BaseAuthorizationPolicy
-            a policy to be applied
+            A policy to be applied.
         """
 
-        self._authorization_policies.append(policy)
+        policies = self._authorization_policies.get(key)
+        if policies:
+            policies.append(policy)
+        else:
+            self._authorization_policies.update({key: [policy]})
+
+    def set_fallback_key_for_policy_mapping(self, key: str):
+        """
+        Sets a key for policy mapping to fallback if no key matches the first part of
+        the module name of endpoints decorated by the policy factory.
+
+        Parameters
+        ----------
+        key : str
+            A fallback key for policy mapping.
+
+        Raises
+        ------
+        InvalidFallbackKey
+            If provided key is not registered in either authentication policies,
+            authorization policies, or both.
+        """
+
+        if (
+            key != ""
+            and self._authentication_policies.get(key)
+            and self._authorization_policies.get(key)
+        ):
+            self._fallback_key_for_policy_mapping = key
+        else:
+            raise InvalidFallbackKey(key)
 
     def authenticate(self):
-        """Applies registered authentication policies to determine access.
+        """
+        Applies registered authentication policies to determine access.
 
         Returns
         -------
         function
-            a decorator to decorate endpoints with
+            A decorator to decorate endpoints with.
 
         Raises
         ------
         NoAuthenticationPoliciesToApplyException
-            if no authentication policies are registered
+            If no authentication policies are registered.
         Unauthorized
-            if user is not authenticated
+            If user is not authenticated.
+        NoFallbackKeySet
+            If no fallback key for policy mapping is set.
         """
 
         def decorator(decorated_function):
@@ -125,8 +188,8 @@ class PolicyFactory:
                     from flask import make_response
 
                     try:
-                        self._user_context = self._authenticate()
-                    except TypeError as error:
+                        self._user_context = self._authenticate(decorated_function)
+                    except (TypeError, PolicyFactoryException) as error:
                         return make_response(
                             {
                                 "message": str(error),
@@ -135,7 +198,7 @@ class PolicyFactory:
                             500,
                         )
                 else:
-                    self._user_context = self._authenticate()
+                    self._user_context = self._authenticate(decorated_function)
 
                 return decorated_function(*args, **kwargs)
 
@@ -144,32 +207,36 @@ class PolicyFactory:
         return decorator
 
     def apply_policies(self, request_context: RequestContext):
-        """Applies registered policies to determine access.
+        """
+        Applies registered policies to determine access.
 
         The first allowing policy will stop execution and allow access.
         The first denying policy will stop execution and deny access.
-        If all policies are applied and none of them allowed or denied access (policy_context.access_verdict == None), then access is denied.
+        If all policies are applied and none of them allowed or denied access
+        (policy_context.access_verdict == None), then access is denied.
 
         Parameters
         ----------
         request_context : RequestContext
-            an object containing data about the context of a request
+            An object containing data about the context of a request.
 
         Returns
         -------
         function
-            a decorator to decorate endpoints with
+            A decorator to decorate endpoints with.
 
         Raises
         ------
         NoAuthenticationPoliciesToApplyException
-            if no authentication policies are registered
+            If no authentication policies are registered.
         NoAuthorizationPoliciesToApplyException
-            if no authorization policies are registered
+            If no authorization policies are registered.
         Unauthorized
-            if user is not authenticated
+            If user is not authenticated.
         Forbidden
-            if user is not authorized
+            If user is not authorized.
+        NoFallbackKeySet
+            If no fallback key for policy mapping is set.
         """
 
         def decorator(decorated_function):
@@ -181,9 +248,9 @@ class PolicyFactory:
 
                     try:
                         self._apply_policies_decorated_function_wrapper_implementation(
-                            request_context
+                            decorated_function, request_context
                         )
-                    except TypeError as error:
+                    except (TypeError, PolicyFactoryException) as error:
                         return make_response(
                             {
                                 "message": str(error),
@@ -193,7 +260,7 @@ class PolicyFactory:
                         )
                 else:
                     self._apply_policies_decorated_function_wrapper_implementation(
-                        request_context
+                        decorated_function, request_context
                     )
 
                 return decorated_function(*args, **kwargs)
@@ -203,28 +270,39 @@ class PolicyFactory:
         return decorator
 
     def _apply_policies_decorated_function_wrapper_implementation(
-        self, request_context: RequestContext
+        self, decorated_function, request_context: RequestContext
     ):
         if len(self._authentication_policies) <= 0:
             raise NoAuthenticationPoliciesToApplyException()
         if len(self._authorization_policies) <= 0:
             raise NoAuthorizationPoliciesToApplyException()
 
-        self._user_context = self._authenticate()
-        self._authorize(self._user_context, request_context)
+        self._user_context = self._authenticate(decorated_function)
+        self._authorize(decorated_function, self._user_context, request_context)
 
-    def _authenticate(self):
+    def _authenticate(self, decorated_function):
         user_context = UserContext()
 
-        for policy in self._authentication_policies:
+        key = self._get_key_for_policy_mapping(
+            self._authentication_policies, decorated_function
+        )
+        for policy in self._authentication_policies[key]:
             user_context = policy.apply(user_context)
 
         return user_context
 
-    def _authorize(self, user_context: UserContext, request_context: RequestContext):
+    def _authorize(
+        self,
+        decorated_function,
+        user_context: UserContext,
+        request_context: RequestContext,
+    ):
         policy_context = PolicyContext()
 
-        for policy in self._authorization_policies:
+        key = self._get_key_for_policy_mapping(
+            self._authorization_policies, decorated_function
+        )
+        for policy in self._authorization_policies[key]:
             policy_context = policy.apply(policy_context, user_context, request_context)
 
             if policy_context.access_verdict:
@@ -233,6 +311,16 @@ class PolicyFactory:
                 break
 
         raise Forbidden()
+
+    def _get_key_for_policy_mapping(self, policy_dict: dict, decorated_function) -> str:
+        for key in policy_dict.keys():
+            if regex.match(rf"^{key}.*", decorated_function.__module__) != None:
+                return key
+
+        if self._fallback_key_for_policy_mapping:
+            return self._fallback_key_for_policy_mapping
+
+        raise NoFallbackKeySet
 
     def __is_test_environment(self, decorated_function) -> bool:
         decorated_function_module = inspect.getmodule(decorated_function)

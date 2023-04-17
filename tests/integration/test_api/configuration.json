@@ -1,23 +1,11 @@
 {
-  "integration": {
-    "name": "app_1",
-    "description": "This is a test app",
-    "version": 1.0,
-    "author": "Inuits",
-    "author_email": "developers@inuits.eu",
-    "license": "GPLv2",
+  "test_api": {
     "policies": {
       "authentication": [],
       "authorization": []
     }
   },
-  "unit": {
-    "name": "app_2",
-    "description": "This is a test app",
-    "version": 1.0,
-    "author": "Inuits",
-    "author_email": "developers@inuits.eu",
-    "license": "GPLv2",
+  "test_api_backup": {
     "policies": {
       "authentication": [],
       "authorization": []
