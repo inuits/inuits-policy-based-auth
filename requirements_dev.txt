@@ -1,11 +1,11 @@
 black==23.3.0
 build==0.10.0
-coverage==7.2.3
+coverage==7.2.5
 Flask-RESTful==0.3.9
-Flask==2.2.3
+Flask==2.3.2
 mypy-extensions==1.0.0
 pathspec==0.11.1
-platformdirs==3.2.0
+platformdirs==3.5.0
 pyjwt==2.6.0
 pytest==7.3.1
 python-dotenv==1.0.0
