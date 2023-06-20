@@ -42,7 +42,7 @@ class AuthlibFlaskOauth2Policy(BaseAuthenticationPolicy):
         remote token validation.
     realm_cache_sync_time : int, optional
         The number of seconds after which the realm cache should be refreshed.
-    remote_public_key : List[dict], optional
+    remote_jwks : List[dict], optional
         A JWKS used by the remote OpenID Connect provider to verify the JWT signature. If
         provided, it will be used instead of the public key or JWKS provided by the issuer.
     **kwargs : dict
@@ -163,7 +163,7 @@ class JWTValidator(BearerTokenValidator, ABC):
     realm_cache_sync_time : int, optional
         An integer representing the number of seconds to cache realm configuration data
         before syncing with the issuer.
-    remote_public_key : List[dict], optional
+    remote_jwks : List[dict], optional
         A JWKS used by the remote OpenID Connect provider to verify the JWT signature. If
         provided, it will be used instead of the public key or JWKS provided by the issuer.
     **kwargs : dict
