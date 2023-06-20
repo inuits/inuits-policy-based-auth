@@ -42,6 +42,9 @@ class AuthlibFlaskOauth2Policy(BaseAuthenticationPolicy):
         remote token validation.
     realm_cache_sync_time : int, optional
         The number of seconds after which the realm cache should be refreshed.
+    remote_public_key : List[dict], optional
+        A JWKS used by the remote OpenID Connect provider to verify the JWT signature. If
+        provided, it will be used instead of the public key or JWKS provided by the issuer.
     **kwargs : dict
         Any additional keyword arguments to be passed to the JWTValidator constructor.
     """
@@ -56,6 +59,7 @@ class AuthlibFlaskOauth2Policy(BaseAuthenticationPolicy):
         remote_token_validation=False,
         remote_public_key=None,
         realm_cache_sync_time=1800,
+        remote_jwks=None,
         **kwargs,
     ):
         validator = JWTValidator(
@@ -66,6 +70,7 @@ class AuthlibFlaskOauth2Policy(BaseAuthenticationPolicy):
             remote_token_validation,
             remote_public_key,
             realm_cache_sync_time,
+            remote_jwks,
             **kwargs,
         )
         resource_protector = ResourceProtector()
@@ -158,6 +163,9 @@ class JWTValidator(BearerTokenValidator, ABC):
     realm_cache_sync_time : int, optional
         An integer representing the number of seconds to cache realm configuration data
         before syncing with the issuer.
+    remote_public_key : List[dict], optional
+        A JWKS used by the remote OpenID Connect provider to verify the JWT signature. If
+        provided, it will be used instead of the public key or JWKS provided by the issuer.
     **kwargs : dict
         Additional keyword arguments to be passed to the parent class.
 
@@ -200,6 +208,7 @@ class JWTValidator(BearerTokenValidator, ABC):
         remote_token_validation=False,
         remote_public_key=None,
         realm_cache_sync_time=1800,
+        remote_jwks=None,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -210,6 +219,7 @@ class JWTValidator(BearerTokenValidator, ABC):
         self.remote_token_validation = remote_token_validation
         self.remote_public_key = remote_public_key
         self.realm_cache_sync_time = realm_cache_sync_time
+        self.remote_jwks = remote_jwks
         self.realm_config_cache = {}
         self.claims_options = {
             "exp": {"essential": True},
@@ -238,14 +248,15 @@ class JWTValidator(BearerTokenValidator, ABC):
             return None
 
         realm_config = self.__get_realm_config_by_issuer(issuer)
-        public_key = ""
+        decode_key = ""
         if "public_key" in realm_config:
-            public_key = f'-----BEGIN PUBLIC KEY-----\n{realm_config["public_key"]}\n-----END PUBLIC KEY-----'
-
+            decode_key = f'-----BEGIN PUBLIC KEY-----\n{realm_config["public_key"]}\n-----END PUBLIC KEY-----'
+        elif self.remote_jwks is not None:
+            decode_key = self.remote_jwks
         try:
             claims = jwt.decode(
                 token_string,
-                public_key,
+                decode_key,
                 claims_options=self.claims_options,
                 claims_cls=self.token_cls,
             )
