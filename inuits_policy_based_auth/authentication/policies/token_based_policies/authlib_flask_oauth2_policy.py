@@ -8,7 +8,6 @@ from authlib.jose import jwt
 from authlib.oauth2 import OAuth2Error
 from authlib.oauth2.rfc6750 import BearerTokenValidator
 from authlib.oauth2.rfc7523 import JWTBearerToken
-from datetime import datetime
 from inuits_policy_based_auth.authentication.base_authentication_policy import (
     BaseAuthenticationPolicy,
 )
@@ -52,25 +51,11 @@ class AuthlibFlaskOauth2Policy(BaseAuthenticationPolicy):
     def __init__(
         self,
         logger: Logger,
-        static_issuer=None,
-        static_public_key=None,
-        realms=None,
         role_scope_mapping_filepath=None,
-        remote_token_validation=False,
-        remote_public_key=None,
-        realm_cache_sync_time=1800,
-        remote_jwks=None,
         **kwargs,
     ):
         validator = JWTValidator(
             logger,
-            static_issuer,
-            static_public_key,
-            realms,
-            remote_token_validation,
-            remote_public_key,
-            realm_cache_sync_time,
-            remote_jwks,
             **kwargs,
         )
         resource_protector = ResourceProtector()
@@ -144,28 +129,6 @@ class JWTValidator(BearerTokenValidator, ABC):
     -----------
     logger : Logger
         An instance of a logger object to be used for logging.
-    static_issuer : str, optional
-        A string representing the static issuer of the JWT. If provided, it will be used
-        to validate the "iss" claim in the JWT.
-    static_public_key : str, optional
-        A string representing the static public key used to verify the JWT signature. If
-        provided, it will be used instead of the public key provided by the issuer.
-    realms : List[str], optional
-        A list of realm names to use for validating the JWT.
-    remote_token_validation : bool, optional
-        A boolean indicating whether remote token validation should be performed. If True,
-        the validator will check the token against the userinfo endpoint of an OpenID
-        Connect provider.
-    remote_public_key : str, optional
-        A string representing the public key used by the remote OpenID Connect provider to
-        verify the JWT signature. If provided, it will be used instead of the public key
-        provided by the issuer.
-    realm_cache_sync_time : int, optional
-        An integer representing the number of seconds to cache realm configuration data
-        before syncing with the issuer.
-    remote_jwks : List[dict], optional
-        A JWKS used by the remote OpenID Connect provider to verify the JWT signature. If
-        provided, it will be used instead of the public key or JWKS provided by the issuer.
     **kwargs : dict
         Additional keyword arguments to be passed to the parent class.
 
@@ -192,8 +155,8 @@ class JWTValidator(BearerTokenValidator, ABC):
     __get_unverified_issuer(token_string: str) -> Optional[str]:
         Extracts the issuer from a JWT token without verifying the signature.
 
-    __get_realm_config_by_issuer(issuer: str) -> dict:
-        Retrieves realm configuration data from the issuer and caches it for future use.
+    __get_jwks_from_issuer(issuer: str) -> dict:
+        Retrieves JWKS from the issuer to be used to validate the token.
     """
 
     TOKEN_TYPE = "bearer"
@@ -202,30 +165,16 @@ class JWTValidator(BearerTokenValidator, ABC):
     def __init__(
         self,
         logger,
-        static_issuer=None,
-        static_public_key=None,
-        realms=None,
-        remote_token_validation=False,
-        remote_public_key=None,
-        realm_cache_sync_time=1800,
-        remote_jwks=None,
         **kwargs,
     ):
         super().__init__(**kwargs)
         self.logger = logger
-        self.static_issuer = static_issuer
-        self.static_public_key = static_public_key
-        self.realms = realms if realms else []
-        self.remote_token_validation = remote_token_validation
-        self.remote_public_key = remote_public_key
-        self.realm_cache_sync_time = realm_cache_sync_time
-        self.remote_jwks = remote_jwks
-        self.realm_config_cache = {}
         self.claims_options = {
             "exp": {"essential": True},
             "azp": {"essential": True},
             "sub": {"essential": True},
         }
+        self.jwks_cache = {}
 
     def authenticate_token(self, token_string):
         """
@@ -246,54 +195,40 @@ class JWTValidator(BearerTokenValidator, ABC):
         issuer = self.__get_unverified_issuer(token_string)
         if not issuer:
             return None
-
-        realm_config = self.__get_realm_config_by_issuer(issuer)
-        decode_key = ""
-        if "public_key" in realm_config:
-            decode_key = f'-----BEGIN PUBLIC KEY-----\n{realm_config["public_key"]}\n-----END PUBLIC KEY-----'
-        elif self.remote_jwks is not None:
-            decode_key = self.remote_jwks
         try:
+            if issuer in self.jwks_cache and self.jwks_cache[issuer] is not None:
+                jwks = self.jwks_cache[issuer]
+            else:
+                jwks = self.__get_jwks_from_issuer(issuer)
+                self.jwks_cache[issuer] = jwks
             claims = jwt.decode(
                 token_string,
-                decode_key,
+                jwks,
                 claims_options=self.claims_options,
                 claims_cls=self.token_cls,
             )
             claims.validate()
-
-            if self.remote_token_validation:
-                result = requests.get(
-                    f"{issuer}/protocol/openid-connect/userinfo",
-                    headers={"Authorization": f"Bearer {token_string}"},
-                )
-                if result.status_code != 200:
-                    raise Exception(result.content.strip())
-
             return claims
-        except Exception as error:
-            self.logger.error(f"Authenticate token failed: {error}")
-            return None
+        except Exception as ex:
+            if issuer not in self.jwks_cache or self.jwks_cache[issuer] is None:
+                self.logger.error(f"Authenticate token failed: {ex}")
+                return None
+            else:
+                self.jwks_cache[issuer] = None
+                return self.authenticate_token(token_string)
 
-    def __get_realm_config_by_issuer(self, issuer):
-        if issuer == self.static_issuer:
-            return {"public_key": self.static_public_key}
-        if issuer not in self.realms:
-            return {}
-        if self.remote_public_key:
-            return {"public_key": self.remote_public_key}
-
-        current_time = datetime.timestamp(datetime.now())
-        if (
-            issuer in self.realm_config_cache
-            and current_time - self.realm_config_cache[issuer]["last_sync_time"]
-            < self.realm_cache_sync_time
-        ):
-            return self.realm_config_cache[issuer]
-
-        self.realm_config_cache[issuer] = requests.get(issuer).json()
-        self.realm_config_cache[issuer]["last_sync_time"] = current_time
-        return self.realm_config_cache[issuer]
+    @staticmethod
+    def __get_jwks_from_issuer(issuer):
+        req = requests.get(f"{issuer}/.well-known/openid-configuration")
+        if req.status_code != 200:
+            raise Exception(
+                f"Failed to get issuer's OpenID configuration: {req.text.strip()}"
+            )
+        jwks_url = req.json()["jwks_uri"]
+        req = requests.get(jwks_url)
+        if req.status_code != 200:
+            raise Exception(f"Failed to get issuer's JWKS: {req.text.strip()}")
+        return req.json()["keys"]
 
     @staticmethod
     def __get_unverified_issuer(token_string):
@@ -302,9 +237,5 @@ class JWTValidator(BearerTokenValidator, ABC):
             payload = f'{token_string.split(".")[1]}=='
         except:
             return None
-
         decoded = json.loads(base64.urlsafe_b64decode(payload.encode("utf-8")))
-        if "iss" in decoded:
-            return decoded["iss"]
-
-        return None
+        return decoded.get("iss")
