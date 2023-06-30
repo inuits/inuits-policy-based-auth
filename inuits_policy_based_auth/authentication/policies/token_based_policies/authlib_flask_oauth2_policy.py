@@ -24,26 +24,14 @@ class AuthlibFlaskOauth2Policy(BaseAuthenticationPolicy):
     -----------
     logger : Logger
         Logger object for logging authentication events and errors.
+    role_scope_mapping_filepath : str, optional
+        Path to a JSON file containing a mapping of scopes to their corresponding roles.
     static_issuer : str, optional
         A string representing the issuer of the JWT. This parameter is required
         if remote token validation is not enabled.
     static_public_key : str, optional
         A string representing the public key used to verify the signature of the
         JWT. This parameter is required if remote token validation is not enabled.
-    realms : List[str], optional
-        A list of realm names that the JWT must belong to in order to be accepted.
-    role_scope_mapping_filepath : str, optional
-        Path to a JSON file containing a mapping of scopes to their corresponding roles.
-    remote_token_validation : bool, optional
-        A flag indicating whether token validation should be done remotely.
-    remote_public_key : str, optional
-        A string representing the public key of the authorization server used for
-        remote token validation.
-    realm_cache_sync_time : int, optional
-        The number of seconds after which the realm cache should be refreshed.
-    remote_jwks : List[dict], optional
-        A JWKS used by the remote OpenID Connect provider to verify the JWT signature. If
-        provided, it will be used instead of the public key or JWKS provided by the issuer.
     **kwargs : dict
         Any additional keyword arguments to be passed to the JWTValidator constructor.
     """
@@ -52,11 +40,14 @@ class AuthlibFlaskOauth2Policy(BaseAuthenticationPolicy):
         self,
         logger: Logger,
         role_scope_mapping_filepath=None,
+        static_issuer=None,
+        static_public_key=None,
         **kwargs,
     ):
         validator = JWTValidator(
             logger,
-            **kwargs,
+            static_issuer,
+            static_public_key**kwargs,
         )
         resource_protector = ResourceProtector()
         resource_protector.register_token_validator(validator)
@@ -129,6 +120,12 @@ class JWTValidator(BearerTokenValidator, ABC):
     -----------
     logger : Logger
         An instance of a logger object to be used for logging.
+    static_issuer : str, optional
+        A string representing the issuer of the JWT. This parameter is required
+        if remote token validation is not enabled.
+    static_public_key : str, optional
+        A string representing the public key used to verify the signature of the
+        JWT. This parameter is required if remote token validation is not enabled.
     **kwargs : dict
         Additional keyword arguments to be passed to the parent class.
 
@@ -165,10 +162,14 @@ class JWTValidator(BearerTokenValidator, ABC):
     def __init__(
         self,
         logger,
+        static_issuer,
+        static_public_key,
         **kwargs,
     ):
         super().__init__(**kwargs)
         self.logger = logger
+        self.static_issuer = static_issuer
+        self.static_public_key = static_public_key
         self.claims_options = {
             "exp": {"essential": True},
             "azp": {"essential": True},
@@ -196,7 +197,9 @@ class JWTValidator(BearerTokenValidator, ABC):
         if not issuer:
             return None
         try:
-            if issuer in self.jwks_cache and self.jwks_cache[issuer] is not None:
+            if issuer == self.static_issuer:
+                jwks = f"-----BEGIN PUBLIC KEY-----\n{self.static_public_key}\n-----END PUBLIC KEY-----"
+            elif issuer in self.jwks_cache and self.jwks_cache[issuer] is not None:
                 jwks = self.jwks_cache[issuer]
             else:
                 jwks = self.__get_jwks_from_issuer(issuer)
