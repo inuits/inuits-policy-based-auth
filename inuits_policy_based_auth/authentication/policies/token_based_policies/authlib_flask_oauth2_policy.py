@@ -47,7 +47,8 @@ class AuthlibFlaskOauth2Policy(BaseAuthenticationPolicy):
         validator = JWTValidator(
             logger,
             static_issuer,
-            static_public_key**kwargs,
+            static_public_key,
+            **kwargs,
         )
         resource_protector = ResourceProtector()
         resource_protector.register_token_validator(validator)

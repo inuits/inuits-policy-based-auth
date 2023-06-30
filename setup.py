@@ -29,5 +29,5 @@ setup(
     name="inuits_policy_based_auth",
     packages=find_packages(exclude=["tests"]),
     provides=["inuits_policy_based_auth"],
-    version="4.0.1",
+    version="4.0.2",
 )
