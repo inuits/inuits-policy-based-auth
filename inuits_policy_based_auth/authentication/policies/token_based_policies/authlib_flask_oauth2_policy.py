@@ -150,7 +150,7 @@ class JWTValidator(BearerTokenValidator, ABC):
 
     Private Methods:
     ----------------
-    __get_unverified_issuer(token_string: str) -> Optional[str]:
+    __get_issuer_from_token_string(token_string: str) -> Optional[str]:
         Extracts the issuer from a JWT token without verifying the signature.
 
     __get_jwks_from_issuer(issuer: str) -> dict:
@@ -178,6 +178,29 @@ class JWTValidator(BearerTokenValidator, ABC):
         }
         self.jwks_cache = {}
 
+    def __decode_token(self, token_string, jwks):
+        try:
+            claims = jwt.decode(
+                token_string,
+                jwks,
+                claims_options=self.claims_options,
+                claims_cls=self.token_cls,
+            )
+            claims.validate()
+            return claims
+        except:
+            return None
+
+    def __get_jwks(self, issuer):
+        if issuer == self.static_issuer:
+            jwks = f"-----BEGIN PUBLIC KEY-----\n{self.static_public_key}\n-----END PUBLIC KEY-----"
+        elif issuer in self.jwks_cache and self.jwks_cache[issuer] is not None:
+            jwks = self.jwks_cache[issuer]
+        else:
+            jwks = self.__get_jwks_from_issuer(issuer)
+            self.jwks_cache[issuer] = jwks
+        return jwks
+
     def authenticate_token(self, token_string):
         """
         Authenticate a JWT token and return a JWTBearerToken object if successful.
@@ -193,33 +216,25 @@ class JWTValidator(BearerTokenValidator, ABC):
             If authentication is successful, returns a JWTBearerToken object containing
             the decoded JWT claims. If authentication fails, None is returned.
         """
-
-        issuer = self.__get_unverified_issuer(token_string)
-        if not issuer:
-            return None
         try:
-            if issuer == self.static_issuer:
-                jwks = f"-----BEGIN PUBLIC KEY-----\n{self.static_public_key}\n-----END PUBLIC KEY-----"
-            elif issuer in self.jwks_cache and self.jwks_cache[issuer] is not None:
-                jwks = self.jwks_cache[issuer]
-            else:
-                jwks = self.__get_jwks_from_issuer(issuer)
-                self.jwks_cache[issuer] = jwks
-            claims = jwt.decode(
-                token_string,
-                jwks,
-                claims_options=self.claims_options,
-                claims_cls=self.token_cls,
-            )
-            claims.validate()
-            return claims
-        except Exception as ex:
-            if issuer not in self.jwks_cache or self.jwks_cache[issuer] is None:
-                self.logger.error(f"Authenticate token failed: {ex}")
-                return None
-            else:
+            issuer = self.__get_issuer_from_token_string(token_string)
+            jwks = self.__get_jwks(issuer)
+            token = self.__decode_token(token_string, jwks)
+            if not token:
                 self.jwks_cache[issuer] = None
-                return self.authenticate_token(token_string)
+                jwks = self.__get_jwks(issuer)
+                token = self.__decode_token(token_string, jwks)
+            return token
+        except Exception as ex:
+            self.logger.error(f"Could not get decoded & validated token: {ex}")
+            return None
+
+    @staticmethod
+    def __get_issuer_from_token_string(token_string):
+        # Adding "=="  is necessary for correct base64 padding
+        payload = f'{token_string.split(".")[1]}=='
+        decoded = json.loads(base64.urlsafe_b64decode(payload.encode("utf-8")))
+        return decoded.get("iss")
 
     @staticmethod
     def __get_jwks_from_issuer(issuer):
@@ -233,13 +248,3 @@ class JWTValidator(BearerTokenValidator, ABC):
         if req.status_code != 200:
             raise Exception(f"Failed to get issuer's JWKS: {req.text.strip()}")
         return req.json()["keys"]
-
-    @staticmethod
-    def __get_unverified_issuer(token_string):
-        try:
-            # Adding "=="  is necessary for correct base64 padding
-            payload = f'{token_string.split(".")[1]}=='
-        except:
-            return None
-        decoded = json.loads(base64.urlsafe_b64decode(payload.encode("utf-8")))
-        return decoded.get("iss")
