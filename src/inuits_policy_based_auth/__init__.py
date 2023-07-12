@@ -19,7 +19,6 @@ Classes
         the main class, used to apply policies
 """
 
-
 from inuits_policy_based_auth.authentication.base_authentication_policy import (
     BaseAuthenticationPolicy,
 )

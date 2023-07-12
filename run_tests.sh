@@ -4,7 +4,7 @@
 clear
 
 if [[ "$1" == "c"  ]]; then
-    coverage run -m pytest -s tests/ && echo && coverage report
+    coverage run -m pytest -s src/tests/ && echo && coverage report
 else
-    pytest -s tests/
+    pytest -s src/tests/
 fi
