@@ -32,6 +32,9 @@ class AuthlibFlaskOauth2Policy(BaseAuthenticationPolicy):
     static_public_key : str, optional
         A string representing the public key used to verify the signature of the
         JWT. This parameter is required if remote token validation is not enabled.
+    allowed_issuers : List[str], optional
+        A list of token issuers whose tokens are allowed. If this parameter is not
+        passed or the list is empty, all issuers are allowed.
     **kwargs : dict
         Any additional keyword arguments to be passed to the JWTValidator constructor.
     """
@@ -42,12 +45,14 @@ class AuthlibFlaskOauth2Policy(BaseAuthenticationPolicy):
         role_scope_mapping_filepath=None,
         static_issuer=None,
         static_public_key=None,
+        allowed_issuers=None,
         **kwargs,
     ):
         validator = JWTValidator(
             logger,
             static_issuer,
             static_public_key,
+            allowed_issuers,
             **kwargs,
         )
         resource_protector = ResourceProtector()
@@ -127,6 +132,9 @@ class JWTValidator(BearerTokenValidator, ABC):
     static_public_key : str, optional
         A string representing the public key used to verify the signature of the
         JWT. This parameter is required if remote token validation is not enabled.
+    allowed_issuers : List[str], optional
+        A list of token issuers whose tokens are allowed. If this parameter is not
+        passed or the list is empty, all issuers are allowed.
     **kwargs : dict
         Additional keyword arguments to be passed to the parent class.
 
@@ -165,12 +173,14 @@ class JWTValidator(BearerTokenValidator, ABC):
         logger,
         static_issuer,
         static_public_key,
+        allowed_issuers,
         **kwargs,
     ):
         super().__init__(**kwargs)
         self.logger = logger
         self.static_issuer = static_issuer
         self.static_public_key = static_public_key
+        self.allowed_issuers = allowed_issuers
         self.claims_options = {
             "exp": {"essential": True},
             "azp": {"essential": True},
@@ -218,6 +228,12 @@ class JWTValidator(BearerTokenValidator, ABC):
         """
         try:
             issuer = self.__get_issuer_from_token_string(token_string)
+            if not self.allowed_issuers:
+                self.logger.warning(
+                    "No allowed issuers configured, allowing all issuers!"
+                )
+            elif issuer not in self.allowed_issuers:
+                raise Exception(f"Issuer {issuer} not allowed")
             jwks = self.__get_jwks(issuer)
             token = self.__decode_token(token_string, jwks)
             if not token:
