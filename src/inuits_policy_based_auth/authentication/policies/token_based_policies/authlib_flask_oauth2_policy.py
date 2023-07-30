@@ -90,6 +90,7 @@ class AuthlibFlaskOauth2Policy(BaseAuthenticationPolicy):
             flattened_token = user_context.flatten_auth_object(token)
 
             user_context.email = flattened_token.get("email", "")
+            user_context.tenant = flattened_token.get("tenant", "")
             user_context.roles = flattened_token.get(
                 f"resource_access.{token['azp']}.roles", []
             )
