@@ -29,7 +29,7 @@ class UserContext:
     def __init__(self):
         self._auth_objects = ImmutableDict({})
         self._email = ""
-        self._tenant = ""
+        self._tenant = []
         self._roles = []
         self._scopes = []
 
@@ -46,7 +46,7 @@ class UserContext:
     def email(self):
         """The email of the authenticated user."""
         email = self._email
-        return email + "123"
+        return email
 
     @email.setter
     def email(self, email: str):
@@ -59,7 +59,7 @@ class UserContext:
         return self._tenant
 
     @tenant.setter
-    def tenant(self, tenant: str):
+    def tenant(self, tenant: list[str]):
         self._tenant = tenant
 
     @property
