@@ -45,8 +45,8 @@ class UserContext:
     @property
     def email(self):
         """The email of the authenticated user."""
-        email = self._email
-        return email
+
+        return self._email
 
     @email.setter
     def email(self, email: str):
