@@ -13,12 +13,14 @@ class UserContext:
         for example a token.
     email : str
         The email of the authenticated user.
-    tenant : str
-        The tenant of the authenticated user.
     roles : list[str]
         The roles of the authenticated user.
     scopes : list[str]
         The scopes of the authenticated user.
+    tenant_names : list[str]
+        Names of the tenants the authenticated user is part of.
+    tenant_objects : list[str]
+        Object representations of the tenants the authenticated user is part of.
 
     Methods
     -------
@@ -29,9 +31,10 @@ class UserContext:
     def __init__(self):
         self._auth_objects = ImmutableDict({})
         self._email = ""
-        self._tenant = ""
         self._roles = []
         self._scopes = []
+        self._tenant_names = []
+        self._tenant_objects = []
 
     @property
     def auth_objects(self):
@@ -53,16 +56,6 @@ class UserContext:
         self._email = email
 
     @property
-    def tenant(self):
-        """The tenant of the authenticated user."""
-
-        return self._tenant
-
-    @tenant.setter
-    def tenant(self, tenant: str):
-        self._tenant = tenant
-
-    @property
     def roles(self):
         """The roles of the authenticated user."""
 
@@ -81,6 +74,28 @@ class UserContext:
     @scopes.setter
     def scopes(self, scopes: list[str]):
         self._scopes = scopes
+
+    @property
+    def tenant_names(self):
+        """Names of the tenants the authenticated user is part of."""
+
+        return self._tenant_names
+
+    @tenant_names.setter
+    def tenant_names(self, names: list[str]):
+        self._tenant_names = names
+
+    @property
+    def tenant_objects(self):
+        """
+        Object representations of the tenants the authenticated user is part of.
+        """
+
+        return self._tenant_objects
+
+    @tenant_objects.setter
+    def tenant_objects(self, objects: list):
+        self._tenant_objects = objects
 
     def __flatten_auth_object_generator(self, data: MutableMapping, parent_key):
         for key, value in data.items():

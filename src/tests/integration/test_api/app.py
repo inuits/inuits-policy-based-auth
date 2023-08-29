@@ -21,9 +21,10 @@ class Entity(Resource):
         response_body = {
             "auth_objects": user_context.auth_objects.get("token"),
             "email": user_context.email,
-            "tenant": user_context.tenant,
             "roles": user_context.roles,
             "scopes": user_context.scopes,
+            "tenant_names": user_context.tenant_names,
+            "tenant_objects": user_context.tenant_objects,
         }
         return make_response(response_body, 200)
 
@@ -33,9 +34,10 @@ class Entity(Resource):
         response_body = {
             "auth_objects": user_context.auth_objects.get("token"),
             "email": user_context.email,
-            "tenant": user_context.tenant,
             "roles": user_context.roles,
             "scopes": user_context.scopes,
+            "tenant_names": user_context.tenant_names,
+            "tenant_objects": user_context.tenant_objects,
         }
         return make_response(response_body, 201)
 
@@ -45,9 +47,10 @@ class Entity(Resource):
         response_body = {
             "auth_objects": user_context.auth_objects.get("token"),
             "email": user_context.email,
-            "tenant": user_context.tenant,
             "roles": user_context.roles,
             "scopes": user_context.scopes,
+            "tenant_names": user_context.tenant_names,
+            "tenant_objects": user_context.tenant_objects,
         }
         return make_response(response_body, 200)
 
