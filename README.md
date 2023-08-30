@@ -177,7 +177,7 @@ from inuits_policy_based_auth import BaseAuthorizationPolicy
 class OpenDataPolicy(BaseAuthorizationPolicy):
     def authorize(self, policy_context, user_context, request_context):
         request = request_context.http_request
-        if request.method == "GET" and user_context.tenant == "inuits":
+        if request.method == "GET" and "inuits" in user_context.tenant_names:
             policy_context.access_verdict = True
 
         return policy_context
