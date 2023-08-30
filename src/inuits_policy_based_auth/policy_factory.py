@@ -284,7 +284,10 @@ class PolicyFactory:
             self._authorization_policies, decorated_function
         )
         for policy in self._authorization_policies[key]:
-            policy_context = policy.apply(policy_context, user_context, request_context)
+            policy_context, user_context = policy.apply(
+                policy_context, user_context, request_context
+            )
+            self._user_context = user_context
 
             if policy_context.access_verdict:
                 return

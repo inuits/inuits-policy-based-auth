@@ -128,12 +128,9 @@ def __instantiate_authentication_policy(policy_module_name, policy, logger: Logg
     if policy_module_name == "token_based_policies.authlib_flask_oauth2_policy":
         return policy(
             logger,
-            os.getenv("STATIC_ISSUER", False),
-            os.getenv("STATIC_PUBLIC_KEY", False),
-            os.getenv("REALMS", "").split(","),
             os.getenv("ROLE_SCOPE_MAPPING", os.getenv("TEST_API_SCOPES")),
-            os.getenv("REMOTE_TOKEN_VALIDATION", False) in ["True", "true", True],
-            os.getenv("REMOTE_PUBLIC_KEY", False),
+            os.getenv("STATIC_ISSUER"),
+            os.getenv("STATIC_PUBLIC_KEY"),
         )
 
     return policy()
@@ -180,7 +177,7 @@ class OpenDataPolicy(BaseAuthorizationPolicy):
         if request.method == "GET" and "inuits" in user_context.tenant_names:
             policy_context.access_verdict = True
 
-        return policy_context
+        return policy_context, user_context
 ```
 
 ## Usage

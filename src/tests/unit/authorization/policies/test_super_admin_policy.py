@@ -13,14 +13,14 @@ class TestSuperAdminPolicy:
 
     def test_authorize_allows_access(self):
         self.user_context.roles = ["super_admin"]
-        policy_context = self.super_admin_policy.authorize(
+        policy_context, _ = self.super_admin_policy.authorize(
             self.policy_context, self.user_context, self.request_context
         )
         assert policy_context.access_verdict == True
 
     def test_authorize_does_not_determine_access(self):
         self.user_context.roles = ["regular_user"]
-        policy_context = self.super_admin_policy.authorize(
+        policy_context, _ = self.super_admin_policy.authorize(
             self.policy_context, self.user_context, self.request_context
         )
         assert policy_context.access_verdict == None

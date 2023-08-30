@@ -13,4 +13,4 @@ class OpenDataPolicy(BaseAuthorizationPolicy):
         if request.method == "GET":
             policy_context.access_verdict = True
 
-        return policy_context
+        return policy_context, user_context

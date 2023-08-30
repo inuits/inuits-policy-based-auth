@@ -275,8 +275,8 @@ class TestPolicyFactory:
         self.policy_factory._get_key_for_policy_mapping = (
             self.spy_policy_factory_get_key_for_policy_mapping
         )
-        self.spy_policy_1_apply.return_value = self.policy_context
-        self.spy_policy_2_apply.return_value = self.policy_context
+        self.spy_policy_1_apply.return_value = self.policy_context, self.user_context
+        self.spy_policy_2_apply.return_value = self.policy_context, self.user_context
         policy_1.apply = self.spy_policy_1_apply
         policy_2.apply = self.spy_policy_2_apply
         self.policy_factory._authorization_policies.update(

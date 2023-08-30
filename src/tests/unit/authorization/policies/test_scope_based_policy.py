@@ -14,7 +14,7 @@ class TestScopeBasedPolicy:
         self.user_context.scopes = ["read"]
         request_context = RequestContext(None, ["create", "read"])
 
-        policy_context = self.scope_based_policy.authorize(
+        policy_context, _ = self.scope_based_policy.authorize(
             self.policy_context, self.user_context, request_context
         )
 
@@ -24,7 +24,7 @@ class TestScopeBasedPolicy:
         self.user_context.scopes = ["update"]
         request_context = RequestContext(None, ["create", "read"])
 
-        policy_context = self.scope_based_policy.authorize(
+        policy_context, _ = self.scope_based_policy.authorize(
             self.policy_context, self.user_context, request_context
         )
 

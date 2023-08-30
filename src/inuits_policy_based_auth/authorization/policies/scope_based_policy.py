@@ -13,4 +13,4 @@ class ScopeBasedPolicy(BaseAuthorizationPolicy):
             if resource_scope in user_context.scopes:
                 policy_context.access_verdict = True
 
-        return policy_context
+        return policy_context, user_context
