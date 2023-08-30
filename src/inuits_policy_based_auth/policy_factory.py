@@ -164,22 +164,23 @@ class PolicyFactory:
                 if len(self._authentication_policies) <= 0:
                     raise NoAuthenticationPoliciesToApplyException()
 
-                if self.__is_test_environment(decorated_function):
-                    import traceback
-                    from flask import make_response
+                if not self._user_context:
+                    if self.__is_test_environment(decorated_function):
+                        import traceback
+                        from flask import make_response
 
-                    try:
+                        try:
+                            self._user_context = self._authenticate(decorated_function)
+                        except (TypeError, PolicyFactoryException) as error:
+                            return make_response(
+                                {
+                                    "message": str(error),
+                                    "stacktrace": traceback.format_exc(),
+                                },
+                                500,
+                            )
+                    else:
                         self._user_context = self._authenticate(decorated_function)
-                    except (TypeError, PolicyFactoryException) as error:
-                        return make_response(
-                            {
-                                "message": str(error),
-                                "stacktrace": traceback.format_exc(),
-                            },
-                            500,
-                        )
-                else:
-                    self._user_context = self._authenticate(decorated_function)
 
                 return decorated_function(*args, **kwargs)
 
