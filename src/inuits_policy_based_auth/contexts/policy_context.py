@@ -1,6 +1,3 @@
-from inuits_policy_based_auth.helpers.access_restrictions import AccessRestrictions
-
-
 class PolicyContext:
     """
     A class containing data about the context of an applied authorization policy.
@@ -9,21 +6,12 @@ class PolicyContext:
 
     Properties
     ----------
-    access_restrictions : AccessRestrictions
-        A class containing properties used to restrict access.
     access_verdict : bool | None
         The verdict that will influence access determination.
     """
 
     def __init__(self):
-        self._access_restrictions = AccessRestrictions()
         self._access_verdict = None
-
-    @property
-    def access_restrictions(self):
-        """A class containing properties used to restrict access."""
-
-        return self._access_restrictions
 
     @property
     def access_verdict(self):

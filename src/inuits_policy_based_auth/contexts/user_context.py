@@ -1,4 +1,5 @@
 from collections.abc import MutableMapping
+from inuits_policy_based_auth.helpers.access_restrictions import AccessRestrictions
 from inuits_policy_based_auth.helpers.immutable_dict import ImmutableDict
 
 
@@ -21,6 +22,8 @@ class UserContext:
         Names of the tenants the authenticated user is part of.
     tenant_objects : list[str]
         Object representations of the tenants the authenticated user is part of.
+    access_restrictions : AccessRestrictions
+        A class containing properties used to restrict access.
 
     Methods
     -------
@@ -35,6 +38,7 @@ class UserContext:
         self._scopes = []
         self._tenant_names = []
         self._tenant_objects = []
+        self._access_restrictions = AccessRestrictions()
 
     @property
     def auth_objects(self):
@@ -96,6 +100,12 @@ class UserContext:
     @tenant_objects.setter
     def tenant_objects(self, objects: list):
         self._tenant_objects = objects
+
+    @property
+    def access_restrictions(self):
+        """A class containing properties used to restrict access."""
+
+        return self._access_restrictions
 
     def __flatten_auth_object_generator(self, data: MutableMapping, parent_key):
         for key, value in data.items():
