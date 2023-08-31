@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "inuits_policy_based_auth"
-version = "6.2.1"
+version = "6.2.2"
 description = "Module for securing API endpoints based on policies."
 readme = "README.md"
 authors = [{ name = "Inuits", email = "developers@inuits.eu" }]
