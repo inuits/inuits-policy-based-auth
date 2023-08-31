@@ -8,19 +8,19 @@ class AccessRestrictions:
 
     Properties
     ----------
-    filters : dict
-        Key-value pairs used to filter on attributes of documents.
+    filters : any
+        Object used to filter on attributes of documents.
     """
 
     def __init__(self):
-        self._filters = {}
+        self._filters = None
 
     @property
     def filters(self):
-        """Key-value pairs used to filter on attributes of documents."""
+        """Object used to filter on attributes of documents."""
 
         return self._filters
 
     @filters.setter
-    def filters(self, filters: dict):
+    def filters(self, filters):
         self._filters = filters
