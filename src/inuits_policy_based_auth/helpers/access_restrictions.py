@@ -8,7 +8,7 @@ class AccessRestrictions:
 
     Properties
     ----------
-    filters : any
+    filters : Unknown
         Object used to filter on attributes of documents.
     """
 

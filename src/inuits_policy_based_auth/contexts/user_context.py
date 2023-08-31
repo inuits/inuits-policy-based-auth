@@ -22,6 +22,10 @@ class UserContext:
         Names of the tenants the authenticated user is part of.
     tenant_objects : list[str]
         Object representations of the tenants the authenticated user is part of.
+    bag : dict
+        Dict that can contain any kind of information. It enables the possibility
+        to share values dynamically between policies themselves or between
+        policies and the api.
     access_restrictions : AccessRestrictions
         A class containing properties used to restrict access.
 
@@ -38,6 +42,7 @@ class UserContext:
         self._scopes = []
         self._tenant_names = []
         self._tenant_objects = []
+        self._bag = {}
         self._access_restrictions = AccessRestrictions()
 
     @property
@@ -100,6 +105,20 @@ class UserContext:
     @tenant_objects.setter
     def tenant_objects(self, objects: list):
         self._tenant_objects = objects
+
+    @property
+    def bag(self):
+        """
+        Dict that can contain any kind of information. It enables the possibility
+        to share values dynamically between policies themselves or between
+        policies and the api.
+        """
+
+        return self._bag
+
+    @bag.setter
+    def bag(self, bag: dict):
+        self._bag = bag
 
     @property
     def access_restrictions(self):
