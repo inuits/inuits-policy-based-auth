@@ -1,7 +1,7 @@
 import pytest
 
 from inuits_policy_based_auth import BaseAuthenticationPolicy
-from inuits_policy_based_auth.contexts import UserContext
+from inuits_policy_based_auth.contexts import UserContext, RequestContext
 from inuits_policy_based_auth.exceptions import (
     AuthenticateMethodDidNotReturnObjectOfTypeUserContextException,
 )
@@ -17,13 +17,14 @@ class TestBaseAuthenticationPolicy:
         self.policy = BaseAuthenticationPolicy()  # type: ignore
         self.spy_policy_authenticate = Mock()
         self.user_context = UserContext()
+        self.request_context = RequestContext(None)
 
         self.policy.authenticate = self.spy_policy_authenticate
 
     def test_apply_returns_user_context(self):
         self.policy.authenticate.return_value = self.user_context
 
-        user_context = self.policy.apply(self.user_context)
+        user_context = self.policy.apply(self.user_context, self.request_context)
 
         self.policy.authenticate.assert_called_once()
         assert user_context is self.user_context
@@ -34,6 +35,6 @@ class TestBaseAuthenticationPolicy:
         with pytest.raises(
             AuthenticateMethodDidNotReturnObjectOfTypeUserContextException
         ):
-            self.policy.apply(self.user_context)
+            self.policy.apply(self.user_context, self.request_context)
 
         self.policy.authenticate.assert_called_once()

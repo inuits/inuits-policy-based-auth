@@ -64,7 +64,7 @@ class AuthlibFlaskOauth2Policy(BaseAuthenticationPolicy):
             role_scope_mapping_filepath
         )
 
-    def authenticate(self, user_context):
+    def authenticate(self, user_context, _):
         """
         Authenticate the user based on the token in the user context.
 
@@ -72,6 +72,8 @@ class AuthlibFlaskOauth2Policy(BaseAuthenticationPolicy):
         -----------
         user_context : UserContext
             The context of the user requesting authentication.
+        request_context : RequestContext
+            The context of the request.
 
         Returns:
         --------

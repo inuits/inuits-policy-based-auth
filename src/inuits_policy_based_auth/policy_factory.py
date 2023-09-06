@@ -139,9 +139,14 @@ class PolicyFactory:
         else:
             raise InvalidFallbackKey(key)
 
-    def authenticate(self):
+    def authenticate(self, request_context: RequestContext):
         """
         Applies registered authentication policies to determine access.
+
+        Parameters
+        ----------
+        request_context : RequestContext
+            An object containing data about the context of a request.
 
         Returns
         -------
@@ -170,7 +175,9 @@ class PolicyFactory:
                         from flask import make_response
 
                         try:
-                            self._user_context = self._authenticate(decorated_function)
+                            self._user_context = self._authenticate(
+                                decorated_function, request_context
+                            )
                         except (TypeError, PolicyFactoryException) as error:
                             return make_response(
                                 {
@@ -180,7 +187,9 @@ class PolicyFactory:
                                 500,
                             )
                     else:
-                        self._user_context = self._authenticate(decorated_function)
+                        self._user_context = self._authenticate(
+                            decorated_function, request_context
+                        )
 
                 return decorated_function(*args, **kwargs)
 
@@ -259,17 +268,17 @@ class PolicyFactory:
         if len(self._authorization_policies) <= 0:
             raise NoAuthorizationPoliciesToApplyException()
 
-        self._user_context = self._authenticate(decorated_function)
+        self._user_context = self._authenticate(decorated_function, request_context)
         self._authorize(decorated_function, self._user_context, request_context)
 
-    def _authenticate(self, decorated_function):
+    def _authenticate(self, decorated_function, request_context: RequestContext):
         user_context = UserContext()
 
         key = self._get_key_for_policy_mapping(
             self._authentication_policies, decorated_function
         )
         for policy in self._authentication_policies[key]:
-            user_context = policy.apply(user_context)
+            user_context = policy.apply(user_context, request_context)
 
         return user_context
 

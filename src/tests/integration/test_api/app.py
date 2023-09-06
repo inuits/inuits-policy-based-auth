@@ -41,7 +41,7 @@ class Entity(Resource):
         }
         return make_response(response_body, 201)
 
-    @policy_factory.authenticate()
+    @policy_factory.authenticate(RequestContext(request))
     def put(self):
         user_context = policy_factory.get_user_context()
         response_body = {

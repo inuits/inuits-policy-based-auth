@@ -135,7 +135,9 @@ class TestPolicyFactory:
             spy_decorated_function, self.request_context
         )
 
-        spy_policy_factory_authenticate.assert_called_once_with(spy_decorated_function)
+        spy_policy_factory_authenticate.assert_called_once_with(
+            spy_decorated_function, self.request_context
+        )
         spy_policy_factory_authorize.assert_called_once_with(
             spy_decorated_function, self.user_context, self.request_context
         )
@@ -164,7 +166,9 @@ class TestPolicyFactory:
             {self.key: [policy_1, policy_2]}
         )
 
-        user_context = self.policy_factory._authenticate(dummy_decorated_function)
+        user_context = self.policy_factory._authenticate(
+            dummy_decorated_function, self.request_context
+        )
 
         spy_policy_factory_get_key_for_policy_mapping.assert_called_once_with(
             self.policy_factory._authentication_policies, dummy_decorated_function

@@ -12,10 +12,10 @@ class BaseAuthorizationPolicy(ABC):
 
     Methods
     -------
-    apply(user_context, request_context):
+    apply(policy_context, user_context, request_context):
         Applies the policy.
 
-    authorize(user_context, request_context):
+    authorize(policy_context, user_context, request_context):
         Authorizes a user.
     """
 
@@ -80,7 +80,7 @@ class BaseAuthorizationPolicy(ABC):
             authorization policy.
         user_context : UserContext
             An object containing data about the authenticated user.
-        request_context : RequestContext, optional
+        request_context : RequestContext
             An object containing data about the context of a request.
 
         Returns
