@@ -19,9 +19,6 @@ class Entity(Resource):
     )
     def get(self):
         user_context = policy_factory.get_user_context()
-        if not user_context.x_tenant:
-            user_context.x_tenant = Tenant()
-
         response_body = {
             "auth_objects": user_context.auth_objects.get("token"),
             "email": user_context.email,
@@ -33,9 +30,6 @@ class Entity(Resource):
     @policy_factory.apply_policies(RequestContext(request))
     def post(self):
         user_context = policy_factory.get_user_context()
-        if not user_context.x_tenant:
-            user_context.x_tenant = Tenant()
-
         response_body = {
             "auth_objects": user_context.auth_objects.get("token"),
             "email": user_context.email,
@@ -47,9 +41,6 @@ class Entity(Resource):
     @policy_factory.authenticate(RequestContext(request))
     def put(self):
         user_context = policy_factory.get_user_context()
-        if not user_context.x_tenant:
-            user_context.x_tenant = Tenant()
-
         response_body = {
             "auth_objects": user_context.auth_objects.get("token"),
             "email": user_context.email,
