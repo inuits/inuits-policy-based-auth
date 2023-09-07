@@ -24,8 +24,6 @@ class AuthlibFlaskOauth2Policy(BaseAuthenticationPolicy):
     -----------
     logger : Logger
         Logger object for logging authentication events and errors.
-    role_scope_mapping_filepath : str, optional
-        Path to a JSON file containing a mapping of scopes to their corresponding roles.
     static_issuer : str, optional
         A string representing the issuer of the JWT. This parameter is required
         if remote token validation is not enabled.
@@ -42,7 +40,6 @@ class AuthlibFlaskOauth2Policy(BaseAuthenticationPolicy):
     def __init__(
         self,
         logger: Logger,
-        role_scope_mapping_filepath=None,
         static_issuer=None,
         static_public_key=None,
         allowed_issuers=None,
@@ -60,9 +57,6 @@ class AuthlibFlaskOauth2Policy(BaseAuthenticationPolicy):
         self._resource_protector = resource_protector
 
         self._logger = logger
-        self._role_scope_mapping = self.__load_role_scope_mapping(
-            role_scope_mapping_filepath
-        )
 
     def authenticate(self, user_context, _):
         """
@@ -92,28 +86,9 @@ class AuthlibFlaskOauth2Policy(BaseAuthenticationPolicy):
             flattened_token = user_context.flatten_auth_object(token)
 
             user_context.email = flattened_token.get("email", "")
-            user_context.roles = flattened_token.get(
-                f"resource_access.{token['azp']}.roles", []
-            )
-            if self._role_scope_mapping:
-                for role in user_context.roles:
-                    try:
-                        user_context.scopes.extend(self._role_scope_mapping[role])
-                    except KeyError:
-                        continue
-
             return user_context
         except OAuth2Error as error:
             raise Unauthorized(str(error))
-
-    def __load_role_scope_mapping(self, file):
-        try:
-            with open(file, "r") as role_scope_mapping:
-                return json.load(role_scope_mapping)
-        except IOError:
-            self._logger.error(f"Could not read role_scope_mapping: {file}")
-        except json.JSONDecodeError:
-            self._logger.error(f"Invalid json in role_scope_mapping: {file}")
 
 
 class JWTValidator(BearerTokenValidator, ABC):

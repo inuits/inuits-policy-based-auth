@@ -10,7 +10,11 @@ class ScopeBasedPolicy(BaseAuthorizationPolicy):
 
     def authorize(self, policy_context, user_context, request_context):
         for resource_scope in request_context.resource_scopes:
-            if resource_scope in user_context.scopes:
+            if not user_context.x_tenant:
+                policy_context.access_verdict = False
+                return policy_context, user_context
+
+            if resource_scope in user_context.x_tenant.scopes:
                 policy_context.access_verdict = True
 
         return policy_context, user_context

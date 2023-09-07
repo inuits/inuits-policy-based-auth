@@ -1,6 +1,7 @@
 from collections.abc import MutableMapping
 from inuits_policy_based_auth.helpers.access_restrictions import AccessRestrictions
 from inuits_policy_based_auth.helpers.immutable_dict import ImmutableDict
+from inuits_policy_based_auth.helpers.tenant import Tenant
 
 
 class UserContext:
@@ -14,14 +15,10 @@ class UserContext:
         for example a token.
     email : str
         The email of the authenticated user.
-    roles : list[str]
-        The roles of the authenticated user.
-    scopes : list[str]
-        The scopes of the authenticated user.
-    tenant_names : list[str]
-        Names of the tenants the authenticated user is part of.
-    tenant_objects : list[str]
-        Object representations of the tenants the authenticated user is part of.
+    x_tenant : Tenant | None
+        The user tenant that is requested from the X-Tenant-Id http header.
+    tenants : list[Tenant]
+        All tenants that are related to the user.
     bag : dict
         Dict that can contain any kind of information. It enables the possibility
         to share values dynamically between policies themselves or between
@@ -38,10 +35,8 @@ class UserContext:
     def __init__(self):
         self._auth_objects = ImmutableDict({})
         self._email = ""
-        self._roles = []
-        self._scopes = []
-        self._tenant_names = []
-        self._tenant_objects = []
+        self._x_tenant: Tenant | None = None
+        self._tenants: list[Tenant] = []
         self._bag = {}
         self._access_restrictions = AccessRestrictions()
 
@@ -65,46 +60,24 @@ class UserContext:
         self._email = email
 
     @property
-    def roles(self):
-        """The roles of the authenticated user."""
+    def x_tenant(self):
+        """The user tenant that is requested from the X-Tenant-Id http header."""
 
-        return self._roles
+        return self._x_tenant
 
-    @roles.setter
-    def roles(self, roles: list[str]):
-        self._roles = roles
-
-    @property
-    def scopes(self):
-        """The scopes of the authenticated user."""
-
-        return self._scopes
-
-    @scopes.setter
-    def scopes(self, scopes: list[str]):
-        self._scopes = scopes
+    @x_tenant.setter
+    def x_tenant(self, x_tenant: Tenant):
+        self._x_tenant = x_tenant
 
     @property
-    def tenant_names(self):
-        """Names of the tenants the authenticated user is part of."""
+    def tenants(self):
+        """All tenants that are related to the user."""
 
-        return self._tenant_names
+        return self._tenants
 
-    @tenant_names.setter
-    def tenant_names(self, names: list[str]):
-        self._tenant_names = names
-
-    @property
-    def tenant_objects(self):
-        """
-        Object representations of the tenants the authenticated user is part of.
-        """
-
-        return self._tenant_objects
-
-    @tenant_objects.setter
-    def tenant_objects(self, objects: list):
-        self._tenant_objects = objects
+    @tenants.setter
+    def tenants(self, tenants: list[Tenant]):
+        self._tenants = tenants
 
     @property
     def bag(self):

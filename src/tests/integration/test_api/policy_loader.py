@@ -60,9 +60,10 @@ def __instantiate_authentication_policy(policy_module_name, policy, logger: Logg
     if policy_module_name == "token_based_policies.authlib_flask_oauth2_policy":
         return policy(
             logger,
-            os.getenv("ROLE_SCOPE_MAPPING", os.getenv("TEST_API_SCOPES")),
             os.getenv("STATIC_ISSUER"),
             os.getenv("STATIC_PUBLIC_KEY"),
         )
+    if policy_module_name == "token_based_policies.default_tenant_policy":
+        return policy(os.getenv("ROLE_SCOPE_MAPPING", os.getenv("TEST_API_SCOPES")))
 
     return policy()

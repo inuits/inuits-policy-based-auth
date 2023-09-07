@@ -13,8 +13,12 @@ class SuperAdminPolicy(BaseAuthorizationPolicy):
 
     super_admin_role: str = os.getenv("SUPER_ADMIN_ROLE", "super_admin")
 
-    def authorize(self, policy_context, user_context, request_context):
-        if self.super_admin_role in user_context.roles:
+    def authorize(self, policy_context, user_context, _):
+        if not user_context.x_tenant:
+            policy_context.access_verdict = False
+            return policy_context, user_context
+
+        if self.super_admin_role in user_context.x_tenant.roles:
             policy_context.access_verdict = True
 
         return policy_context, user_context

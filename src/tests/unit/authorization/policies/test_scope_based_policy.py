@@ -2,6 +2,7 @@ from inuits_policy_based_auth.authorization.policies.scope_based_policy import (
     ScopeBasedPolicy,
 )
 from inuits_policy_based_auth.contexts import PolicyContext, RequestContext, UserContext
+from inuits_policy_based_auth.helpers.tenant import Tenant
 
 
 class TestScopeBasedPolicy:
@@ -9,9 +10,10 @@ class TestScopeBasedPolicy:
         self.scope_based_policy = ScopeBasedPolicy()
         self.policy_context = PolicyContext()
         self.user_context = UserContext()
+        self.user_context.x_tenant = Tenant()
 
     def test_authorize_allows_access(self):
-        self.user_context.scopes = ["read"]
+        self.user_context.x_tenant.scopes = ["read"]  # pyright: ignore
         request_context = RequestContext(None, ["create", "read"])
 
         policy_context, _ = self.scope_based_policy.authorize(
@@ -21,7 +23,7 @@ class TestScopeBasedPolicy:
         assert policy_context.access_verdict == True
 
     def test_authorize_does_not_determine_access(self):
-        self.user_context.scopes = ["update"]
+        self.user_context.x_tenant.scopes = ["update"]  # pyright: ignore
         request_context = RequestContext(None, ["create", "read"])
 
         policy_context, _ = self.scope_based_policy.authorize(

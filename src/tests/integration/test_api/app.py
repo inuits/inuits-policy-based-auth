@@ -2,6 +2,7 @@ from .policy_loader import load_policies
 from flask import Flask, make_response
 from flask_restful import Api, Resource, request
 from inuits_policy_based_auth import PolicyFactory, RequestContext
+from inuits_policy_based_auth.helpers.tenant import Tenant
 from logging import Logger
 
 
@@ -18,39 +19,42 @@ class Entity(Resource):
     )
     def get(self):
         user_context = policy_factory.get_user_context()
+        if not user_context.x_tenant:
+            user_context.x_tenant = Tenant()
+
         response_body = {
             "auth_objects": user_context.auth_objects.get("token"),
             "email": user_context.email,
-            "roles": user_context.roles,
-            "scopes": user_context.scopes,
-            "tenant_names": user_context.tenant_names,
-            "tenant_objects": user_context.tenant_objects,
+            "roles": user_context.x_tenant.roles,
+            "scopes": user_context.x_tenant.scopes,
         }
         return make_response(response_body, 200)
 
     @policy_factory.apply_policies(RequestContext(request))
     def post(self):
         user_context = policy_factory.get_user_context()
+        if not user_context.x_tenant:
+            user_context.x_tenant = Tenant()
+
         response_body = {
             "auth_objects": user_context.auth_objects.get("token"),
             "email": user_context.email,
-            "roles": user_context.roles,
-            "scopes": user_context.scopes,
-            "tenant_names": user_context.tenant_names,
-            "tenant_objects": user_context.tenant_objects,
+            "roles": user_context.x_tenant.roles,
+            "scopes": user_context.x_tenant.scopes,
         }
         return make_response(response_body, 201)
 
     @policy_factory.authenticate(RequestContext(request))
     def put(self):
         user_context = policy_factory.get_user_context()
+        if not user_context.x_tenant:
+            user_context.x_tenant = Tenant()
+
         response_body = {
             "auth_objects": user_context.auth_objects.get("token"),
             "email": user_context.email,
-            "roles": user_context.roles,
-            "scopes": user_context.scopes,
-            "tenant_names": user_context.tenant_names,
-            "tenant_objects": user_context.tenant_objects,
+            "roles": user_context.x_tenant.roles,
+            "scopes": user_context.x_tenant.scopes,
         }
         return make_response(response_body, 200)
 
