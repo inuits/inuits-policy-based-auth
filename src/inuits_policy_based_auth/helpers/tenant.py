@@ -10,15 +10,15 @@ class Tenant:
         The roles of the authenticated user.
     scopes : list[str]
         The scopes of the authenticated user.
-    object : dict
-        Object representation of the tenant the authenticated user is part of.
+    raw : dict
+        Raw object representation of the tenant the authenticated user is part of.
     """
 
     def __init__(self):
         self._id = ""
         self._roles = []
         self._scopes = []
-        self._object = {}
+        self._raw = {}
 
     @property
     def id(self):
@@ -51,13 +51,13 @@ class Tenant:
         self._scopes = scopes
 
     @property
-    def object(self):
+    def raw(self):
         """
-        Object representation of the tenant the authenticated user is part of.
+        Raw object representation of the tenant the authenticated user is part of.
         """
 
-        return self._object
+        return self._raw
 
-    @object.setter
-    def object(self, object: dict):
-        self._object = object
+    @raw.setter
+    def raw(self, raw: dict):
+        self._raw = raw
