@@ -15,7 +15,7 @@ class UserContext:
         for example a token.
     email : str
         The email of the authenticated user.
-    x_tenant : Tenant | None
+    x_tenant : Tenant
         The user tenant that is requested from the X-Tenant-Id http header.
     tenants : list[Tenant]
         All tenants that are related to the user.
@@ -35,7 +35,7 @@ class UserContext:
     def __init__(self):
         self._auth_objects = ImmutableDict({})
         self._email = ""
-        self._x_tenant: Tenant | None = None
+        self._x_tenant = Tenant()
         self._tenants: list[Tenant] = []
         self._bag = {}
         self._access_restrictions = AccessRestrictions()
