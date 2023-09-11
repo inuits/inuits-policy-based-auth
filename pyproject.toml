@@ -36,7 +36,7 @@ dependencies = [
 dev = [
     "black==23.9.1",
     "build==1.0.3",
-    "coverage==7.3.0",
+    "coverage==7.3.1",
     "Flask-RESTful==0.3.10",
     "Flask==2.3.3",
     "mypy-extensions==1.0.0",
