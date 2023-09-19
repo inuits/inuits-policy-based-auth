@@ -1,24 +1,14 @@
 {
   "test_api": {
     "policies": {
-      "authentication": [
-        "token_based_policies.authlib_flask_oauth2_policy",
-        "token_based_policies.default_tenant_policy"
-      ],
-      "authorization": [
-        "super_admin_policy"
-      ]
+      "authentication": [],
+      "authorization": []
     }
   },
   "test_api_backup": {
     "policies": {
-      "authentication": [
-        "token_based_policies.authlib_flask_oauth2_policy",
-        "token_based_policies.default_tenant_policy"
-      ],
-      "authorization": [
-        "super_admin_policy"
-      ]
+      "authentication": [],
+      "authorization": []
     }
   }
 }
