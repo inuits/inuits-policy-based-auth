@@ -71,7 +71,7 @@ class TestPolicyFactory:
         response = requests.get(self.ENDPOINT, headers=headers)
 
         assert response.status_code == 200
-        assert response.json()["roles"] == [self.SUPER_ADMIN_ROLE]
+        assert response.json()["x_tenant"]["roles"] == [self.SUPER_ADMIN_ROLE]
 
     def test_regular_user_with_invalid_scopes_cannot_successfully_do_post_request(self):
         payload = self._get_payload([self.REGULAR_USER_ROLE])
@@ -89,8 +89,10 @@ class TestPolicyFactory:
 
         json_response = response.json()
         assert response.status_code == 200
-        assert json_response["roles"] == [self.REGULAR_USER_ROLE]
-        assert json_response["scopes"] == self._get_scopes(self.REGULAR_USER_ROLE)
+        assert json_response["x_tenant"]["roles"] == [self.REGULAR_USER_ROLE]
+        assert json_response["x_tenant"]["scopes"] == self._get_scopes(
+            self.REGULAR_USER_ROLE
+        )
 
     def _get_payload(self, roles):
         return {

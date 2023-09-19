@@ -21,8 +21,16 @@ class Entity(Resource):
         response_body = {
             "auth_objects": user_context.auth_objects.get("token"),
             "email": user_context.email,
-            "roles": user_context.x_tenant.roles,
-            "scopes": user_context.x_tenant.scopes,
+            "x_tenant": {
+                "id": user_context.x_tenant.id,
+                "roles": user_context.x_tenant.roles,
+                "scopes": user_context.x_tenant.scopes,
+                "raw": user_context.x_tenant.raw,
+            },
+            "bag": user_context.bag,
+            "access_restrictions": {
+                "filters": user_context.access_restrictions.filters
+            },
         }
         return make_response(response_body, 200)
 
@@ -32,8 +40,16 @@ class Entity(Resource):
         response_body = {
             "auth_objects": user_context.auth_objects.get("token"),
             "email": user_context.email,
-            "roles": user_context.x_tenant.roles,
-            "scopes": user_context.x_tenant.scopes,
+            "x_tenant": {
+                "id": user_context.x_tenant.id,
+                "roles": user_context.x_tenant.roles,
+                "scopes": user_context.x_tenant.scopes,
+                "raw": user_context.x_tenant.raw,
+            },
+            "bag": user_context.bag,
+            "access_restrictions": {
+                "filters": user_context.access_restrictions.filters
+            },
         }
         return make_response(response_body, 201)
 
@@ -43,8 +59,16 @@ class Entity(Resource):
         response_body = {
             "auth_objects": user_context.auth_objects.get("token"),
             "email": user_context.email,
-            "roles": user_context.x_tenant.roles,
-            "scopes": user_context.x_tenant.scopes,
+            "x_tenant": {
+                "id": user_context.x_tenant.id,
+                "roles": user_context.x_tenant.roles,
+                "scopes": user_context.x_tenant.scopes,
+                "raw": user_context.x_tenant.raw,
+            },
+            "bag": user_context.bag,
+            "access_restrictions": {
+                "filters": user_context.access_restrictions.filters
+            },
         }
         return make_response(response_body, 200)
 

@@ -67,8 +67,8 @@ class DefaultTenantPolicy(BaseAuthenticationPolicy):
                         continue
 
             return user_context
-        except OAuth2Error as error:
-            raise Unauthorized(str(error))
+        except Exception:
+            raise Unauthorized()
 
     def __load_role_scope_mapping(self, file):
         try:
