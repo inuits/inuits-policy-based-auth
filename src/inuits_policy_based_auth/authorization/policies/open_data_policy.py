@@ -11,6 +11,10 @@ class OpenDataPolicy(BaseAuthorizationPolicy):
     def authorize(self, policy_context, user_context, request_context):
         request = request_context.http_request
         if request.method == "GET":
+            user_context.bag["test"] = "test"
+            user_context.access_restrictions.filters = {
+                "relations.hasTenant": user_context.x_tenant.id
+            }
             policy_context.access_verdict = True
 
-        return policy_context, user_context
+        return policy_context

@@ -12,10 +12,8 @@ policy_factory = PolicyFactory()
 load_policies(policy_factory, Logger(""))
 
 
-class Entity(Resource):
-    @policy_factory.apply_policies(
-        RequestContext(request, ["read-entity", "update-entity"])
-    )
+class GenericEndpoints(Resource):
+    @policy_factory.authenticate(RequestContext(request))
     def get(self):
         user_context = policy_factory.get_user_context()
         response_body = {
@@ -34,7 +32,7 @@ class Entity(Resource):
         }
         return make_response(response_body, 200)
 
-    @policy_factory.apply_policies(RequestContext(request))
+    @policy_factory.authenticate(RequestContext(request))
     def post(self):
         user_context = policy_factory.get_user_context()
         response_body = {
@@ -73,4 +71,20 @@ class Entity(Resource):
         return make_response(response_body, 200)
 
 
-api.add_resource(Entity, "/")
+class ConcreteEndpoints(GenericEndpoints):
+    @policy_factory.apply_policies(
+        RequestContext(request, ["read-entity", "update-entity"])
+    )
+    def get(self):
+        return super().get()
+
+    @policy_factory.apply_policies(RequestContext(request))
+    def post(self):
+        return super().post()
+
+    @policy_factory.authenticate(RequestContext(request))
+    def put(self):
+        return super().put()
+
+
+api.add_resource(ConcreteEndpoints, "/")

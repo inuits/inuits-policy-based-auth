@@ -17,4 +17,4 @@ class SuperAdminPolicy(BaseAuthorizationPolicy):
         if self.super_admin_role in user_context.x_tenant.roles:
             policy_context.access_verdict = True
 
-        return policy_context, user_context
+        return policy_context

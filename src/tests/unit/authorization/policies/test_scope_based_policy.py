@@ -16,7 +16,7 @@ class TestScopeBasedPolicy:
         self.user_context.x_tenant.scopes = ["read"]  # pyright: ignore
         request_context = RequestContext(None, ["create", "read"])
 
-        policy_context, _ = self.scope_based_policy.authorize(
+        policy_context = self.scope_based_policy.authorize(
             self.policy_context, self.user_context, request_context
         )
 
@@ -26,7 +26,7 @@ class TestScopeBasedPolicy:
         self.user_context.x_tenant.scopes = ["update"]  # pyright: ignore
         request_context = RequestContext(None, ["create", "read"])
 
-        policy_context, _ = self.scope_based_policy.authorize(
+        policy_context = self.scope_based_policy.authorize(
             self.policy_context, self.user_context, request_context
         )
 

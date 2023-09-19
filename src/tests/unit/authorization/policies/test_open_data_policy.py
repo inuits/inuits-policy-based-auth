@@ -15,14 +15,14 @@ class TestOpenDataPolicy:
 
     def test_authorize_allows_access(self):
         self.fake_http_request._request_type = "GET"
-        policy_context, _ = self.open_data_policy.authorize(
+        policy_context = self.open_data_policy.authorize(
             self.policy_context, self.user_context, self.request_context
         )
         assert policy_context.access_verdict == True
 
     def test_authorize_does_not_determine_access(self):
         self.fake_http_request._request_type = "POST"
-        policy_context, _ = self.open_data_policy.authorize(
+        policy_context = self.open_data_policy.authorize(
             self.policy_context, self.user_context, self.request_context
         )
         assert policy_context.access_verdict == None

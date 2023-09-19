@@ -175,9 +175,7 @@ class PolicyFactory:
                         from flask import make_response
 
                         try:
-                            self._user_context = self._authenticate(
-                                decorated_function, request_context
-                            )
+                            self._authenticate(decorated_function, request_context)
                         except (TypeError, PolicyFactoryException) as error:
                             return make_response(
                                 {
@@ -187,9 +185,7 @@ class PolicyFactory:
                                 500,
                             )
                     else:
-                        self._user_context = self._authenticate(
-                            decorated_function, request_context
-                        )
+                        self._authenticate(decorated_function, request_context)
 
                 return decorated_function(*args, **kwargs)
 
@@ -268,8 +264,8 @@ class PolicyFactory:
         if len(self._authorization_policies) <= 0:
             raise NoAuthorizationPoliciesToApplyException()
 
-        self._user_context = self._authenticate(decorated_function, request_context)
-        self._authorize(decorated_function, self._user_context, request_context)
+        self._authenticate(decorated_function, request_context)
+        self._authorize(decorated_function, request_context)
 
     def _authenticate(self, decorated_function, request_context: RequestContext):
         user_context = UserContext()
@@ -280,24 +276,21 @@ class PolicyFactory:
         for policy in self._authentication_policies[key]:
             user_context = policy.apply(user_context, request_context)
 
-        return user_context
+        self._user_context = user_context
 
-    def _authorize(
-        self,
-        decorated_function,
-        user_context: UserContext,
-        request_context: RequestContext,
-    ):
+    def _authorize(self, decorated_function, request_context: RequestContext):
+        if not self._user_context:
+            raise NoUserContextException()
+
         policy_context = PolicyContext()
 
         key = self._get_key_for_policy_mapping(
             self._authorization_policies, decorated_function
         )
         for policy in self._authorization_policies[key]:
-            policy_context, user_context = policy.apply(
-                policy_context, user_context, request_context
+            policy_context = policy.apply(
+                policy_context, self._user_context, request_context
             )
-            self._user_context = user_context
 
             if policy_context.access_verdict:
                 return

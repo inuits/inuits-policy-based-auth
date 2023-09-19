@@ -43,10 +43,8 @@ class AuthenticateMethodDidNotReturnObjectOfTypeUserContextException(PolicyExcep
         )
 
 
-class AuthorizeMethodDidNotReturnTupleOfPolicyContextAndUserContextException(
-    PolicyException
-):
+class AuthorizeMethodDidNotReturnObjectOfTypePolicyContextException(PolicyException):
     def __init__(self):
         super().__init__(
-            "Authorize method of authorization policy did not return a tuple of PolicyContext and UserContext."
+            "Authorize method of authorization policy did not return an object of type PolicyContext."
         )

@@ -49,6 +49,7 @@ class TestSuperAdminPolicy:
         response = requests.get(self.ENDPOINT, headers=headers)
 
         assert response.status_code == 200
+        assert response.json()["x_tenant"]["roles"] == [self.SUPER_ADMIN_ROLE]
 
     def test_post_request_with_correct_role_returns_201(self):
         payload = self._get_payload([self.SUPER_ADMIN_ROLE])
@@ -57,6 +58,7 @@ class TestSuperAdminPolicy:
         response = requests.post(self.ENDPOINT, headers=headers)
 
         assert response.status_code == 201
+        assert response.json()["x_tenant"]["roles"] == [self.SUPER_ADMIN_ROLE]
 
     def _get_payload(self, roles):
         return {

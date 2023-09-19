@@ -3,7 +3,7 @@ import pytest
 from inuits_policy_based_auth import BaseAuthorizationPolicy
 from inuits_policy_based_auth.contexts import PolicyContext, RequestContext, UserContext
 from inuits_policy_based_auth.exceptions import (
-    AuthorizeMethodDidNotReturnTupleOfPolicyContextAndUserContextException,
+    AuthorizeMethodDidNotReturnObjectOfTypePolicyContextException,
 )
 from unittest.mock import Mock, patch
 
@@ -23,9 +23,9 @@ class TestBaseAuthorizationPolicy:
         self.policy.authorize = self.spy_policy_authorize
 
     def test_apply_returns_policy_context(self):
-        self.policy.authorize.return_value = self.policy_context, self.user_context
+        self.policy.authorize.return_value = self.policy_context
 
-        policy_context, self.user_context = self.policy.apply(
+        policy_context = self.policy.apply(
             self.policy_context, self.user_context, self.request_context
         )
 
@@ -34,22 +34,22 @@ class TestBaseAuthorizationPolicy:
 
     def test_apply_sets_policy_context_access_verdict_to_none_by_default(self):
         self.policy_context.access_verdict = True
-        self.policy.authorize.return_value = self.policy_context, self.user_context
+        self.policy.authorize.return_value = self.policy_context
 
-        policy_context, self.user_context = self.policy.apply(
+        policy_context = self.policy.apply(
             self.policy_context, self.user_context, self.request_context
         )
 
         self.policy.authorize.assert_called_once()
         assert policy_context.access_verdict == None
 
-    def test_apply_raises_AuthorizeMethodDidNotReturnTupleOfPolicyContextAndUserContextException(
+    def test_apply_raises_AuthorizeMethodDidNotReturnObjectOfTypePolicyContextException(
         self,
     ):
         self.policy.authorize.return_value = None, None
 
         with pytest.raises(
-            AuthorizeMethodDidNotReturnTupleOfPolicyContextAndUserContextException
+            AuthorizeMethodDidNotReturnObjectOfTypePolicyContextException
         ):
             self.policy.apply(
                 self.policy_context, self.user_context, self.request_context
