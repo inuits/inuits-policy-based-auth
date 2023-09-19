@@ -2,7 +2,6 @@ from .policy_loader import load_policies
 from flask import Flask, make_response
 from flask_restful import Api, Resource, request
 from inuits_policy_based_auth import PolicyFactory, RequestContext
-from inuits_policy_based_auth.helpers.tenant import Tenant
 from logging import Logger
 
 
