@@ -189,6 +189,12 @@ class TestPolicyFactory:
         spy_policy_1_apply.assert_called_once()
         spy_policy_2_apply.assert_called_once()
 
+    def test_authorize_raises_NoUserContextException_if_user_context_is_none(self):
+        self._prepare_test_authorize()
+
+        with pytest.raises(NoUserContextException):
+            self.policy_factory._authorize(Mock(), Mock())
+
     def test_authorize_allows_access_and_stops_execution_if_policy_context_access_verdict_is_true(
         self,
     ):

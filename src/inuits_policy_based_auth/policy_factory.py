@@ -18,7 +18,7 @@ from inuits_policy_based_auth.exceptions import (
     InvalidFallbackKey,
     NoFallbackKeySet,
 )
-from werkzeug.exceptions import Forbidden
+from werkzeug.exceptions import Unauthorized, Forbidden
 
 
 class PolicyFactory:
@@ -51,6 +51,7 @@ class PolicyFactory:
         self._authentication_policies: dict[str, list[BaseAuthenticationPolicy]] = {}
         self._authorization_policies: dict[str, list[BaseAuthorizationPolicy]] = {}
         self._fallback_key_for_policy_mapping = ""
+        self._previous_request_context_hash: int | None = None
 
     def get_user_context(self) -> UserContext:
         """
@@ -169,7 +170,7 @@ class PolicyFactory:
                 if len(self._authentication_policies) <= 0:
                     raise NoAuthenticationPoliciesToApplyException()
 
-                if not self._user_context:
+                if hash(request_context) != self._previous_request_context_hash:
                     if self.__is_test_environment(decorated_function):
                         import traceback
                         from flask import make_response
@@ -177,6 +178,9 @@ class PolicyFactory:
                         try:
                             self.__log_decorator("authenticate")
                             self._authenticate(decorated_function, request_context)
+                        except Unauthorized as error:
+                            self.__clear_logs()
+                            raise error
                         except (TypeError, PolicyFactoryException) as error:
                             return make_response(
                                 {
@@ -188,6 +192,7 @@ class PolicyFactory:
                     else:
                         self._authenticate(decorated_function, request_context)
 
+                self._previous_request_context_hash = hash(request_context)
                 return decorated_function(*args, **kwargs)
 
             return decorated_function_wrapper
@@ -225,6 +230,8 @@ class PolicyFactory:
             If user is not authorized.
         NoFallbackKeySet
             If no fallback key for policy mapping is set.
+        NoUserContextException
+            If there is no user auth data yet.
         """
 
         def decorator(decorated_function):
@@ -239,6 +246,9 @@ class PolicyFactory:
                         self._apply_policies_decorated_function_wrapper_implementation(
                             decorated_function, request_context
                         )
+                    except (Unauthorized, Forbidden) as error:
+                        self.__clear_logs()
+                        raise error
                     except (TypeError, PolicyFactoryException) as error:
                         return make_response(
                             {
@@ -252,6 +262,7 @@ class PolicyFactory:
                         decorated_function, request_context
                     )
 
+                self._previous_request_context_hash = hash(request_context)
                 return decorated_function(*args, **kwargs)
 
             return decorated_function_wrapper
@@ -309,7 +320,7 @@ class PolicyFactory:
         if self._fallback_key_for_policy_mapping:
             return self._fallback_key_for_policy_mapping
 
-        raise NoFallbackKeySet
+        raise NoFallbackKeySet()
 
     def __is_test_environment(self, decorated_function) -> bool:
         decorated_function_module = inspect.getmodule(decorated_function)
@@ -327,3 +338,7 @@ class PolicyFactory:
     def __log_decorator(self, name: str):
         with open(str(os.getenv("TEST_API_LOGS")), "a") as logs:
             logs.write(f"{name}\n")
+
+    def __clear_logs(self):
+        with open(str(os.getenv("TEST_API_LOGS")), "w") as logs:
+            logs.write("")

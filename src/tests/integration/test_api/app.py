@@ -25,7 +25,9 @@ class GenericEndpoints(Resource):
         ) = _get_number_of_decorator_calls()
 
         response_body = {
-            "auth_objects": user_context.auth_objects.get("token"),
+            "auth_objects": {
+                "token": user_context.auth_objects.get("token"),
+            },
             "email": user_context.email,
             "x_tenant": {
                 "id": user_context.x_tenant.id,
@@ -39,10 +41,16 @@ class GenericEndpoints(Resource):
             },
             "number_of_authenticate_calls": number_of_authenticate_calls,
             "number_of_apply_policies_calls": number_of_apply_policies_calls,
+            "request_context": {
+                "generic_endpoint": {
+                    "hash": hash(RequestContext(request)),
+                    "serialized": str(RequestContext(request)._serialize()),
+                }
+            },
         }
 
         flask_process.clear_logs()
-        return make_response(response_body, 200)
+        return response_body
 
     @policy_factory.authenticate(RequestContext(request))
     def post(self):
@@ -53,7 +61,9 @@ class GenericEndpoints(Resource):
         ) = _get_number_of_decorator_calls()
 
         response_body = {
-            "auth_objects": user_context.auth_objects.get("token"),
+            "auth_objects": {
+                "token": user_context.auth_objects.get("token"),
+            },
             "email": user_context.email,
             "x_tenant": {
                 "id": user_context.x_tenant.id,
@@ -67,10 +77,16 @@ class GenericEndpoints(Resource):
             },
             "number_of_authenticate_calls": number_of_authenticate_calls,
             "number_of_apply_policies_calls": number_of_apply_policies_calls,
+            "request_context": {
+                "generic_endpoint": {
+                    "hash": hash(RequestContext(request)),
+                    "serialized": str(RequestContext(request)._serialize()),
+                }
+            },
         }
 
         flask_process.clear_logs()
-        return make_response(response_body, 201)
+        return response_body
 
     @policy_factory.authenticate(RequestContext(request))
     def put(self):
@@ -81,7 +97,9 @@ class GenericEndpoints(Resource):
         ) = _get_number_of_decorator_calls()
 
         response_body = {
-            "auth_objects": user_context.auth_objects.get("token"),
+            "auth_objects": {
+                "token": user_context.auth_objects.get("token"),
+            },
             "email": user_context.email,
             "x_tenant": {
                 "id": user_context.x_tenant.id,
@@ -95,10 +113,16 @@ class GenericEndpoints(Resource):
             },
             "number_of_authenticate_calls": number_of_authenticate_calls,
             "number_of_apply_policies_calls": number_of_apply_policies_calls,
+            "request_context": {
+                "generic_endpoint": {
+                    "hash": hash(RequestContext(request)),
+                    "serialized": str(RequestContext(request)._serialize()),
+                }
+            },
         }
 
         flask_process.clear_logs()
-        return make_response(response_body, 200)
+        return response_body
 
 
 class ConcreteEndpoints(GenericEndpoints):
@@ -106,15 +130,32 @@ class ConcreteEndpoints(GenericEndpoints):
         RequestContext(request, ["read-entity", "update-entity"])
     )
     def get(self):
-        return super().get()
+        response_body = super().get()
+        response_body["request_context"]["concrete_endpoint"] = {
+            "hash": hash(RequestContext(request, ["read-entity", "update-entity"])),
+            "serialized": str(
+                RequestContext(request, ["read-entity", "update-entity"])._serialize()
+            ),
+        }
+        return make_response(response_body, 200)
 
     @policy_factory.apply_policies(RequestContext(request))
     def post(self):
-        return super().post()
+        response_body = super().post()
+        response_body["request_context"]["concrete_endpoint"] = {
+            "hash": hash(RequestContext(request)),
+            "serialized": str(RequestContext(request)._serialize()),
+        }
+        return make_response(response_body, 201)
 
     @policy_factory.authenticate(RequestContext(request))
     def put(self):
-        return super().put()
+        response_body = super().put()
+        response_body["request_context"]["concrete_endpoint"] = {
+            "hash": hash(RequestContext(request)),
+            "serialized": str(RequestContext(request)._serialize()),
+        }
+        return make_response(response_body, 200)
 
 
 def _get_number_of_decorator_calls() -> tuple[int, int]:

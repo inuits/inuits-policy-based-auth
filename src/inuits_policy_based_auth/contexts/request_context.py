@@ -43,3 +43,22 @@ class RequestContext:
         """
 
         return self._resource_scopes
+
+    def _serialize(self) -> dict:
+        return {
+            "http_request": {
+                "method": self._http_request.method,
+                "path": self._http_request.path,
+                "headers": self._http_request.headers,
+                "data": self._http_request.data,
+            }
+        }
+
+    def __hash__(self) -> int:
+        return hash(str(self._serialize()))
+
+    def __eq__(self, request_context) -> bool:
+        return self.__hash__() == request_context.__hash__()
+
+    def __ne__(self, request_context) -> bool:
+        return not self.__eq__(request_context)

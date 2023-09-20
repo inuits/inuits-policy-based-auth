@@ -1,6 +1,5 @@
 import json
 import os
-import pytest
 import requests
 
 from . import flask_process, custom_token
@@ -57,6 +56,72 @@ class TestPolicyFactory:
 
         assert response.status_code == 403
 
+    def test_request_without_token_returns_401_after_a_successful_request_with_token(
+        self,
+    ):
+        payload = self._get_payload([self.REGULAR_USER_ROLE])
+        headers = custom_token.get_authorization_header(payload)
+
+        response = requests.get(self.ENDPOINT, headers=headers)
+        assert response.status_code == 200
+
+        response = requests.put(self.ENDPOINT)
+        assert response.status_code == 401
+
+    def test_authenticate_on_generic_endpoint_is_not_called_when_request_first_goes_through_concrete_endpoint_that_already_authenticated(
+        self,
+    ):
+        payload = self._get_payload([self.REGULAR_USER_ROLE])
+        headers = custom_token.get_authorization_header(payload)
+
+        response = requests.get(self.ENDPOINT, headers=headers)
+        json_response = response.json()
+        assert response.status_code == 200
+        assert json_response["number_of_authenticate_calls"] == 0
+        assert json_response["number_of_apply_policies_calls"] == 1
+
+        response = requests.put(self.ENDPOINT, headers=headers)
+        json_response = response.json()
+        assert response.status_code == 200
+        assert json_response["number_of_authenticate_calls"] == 1
+        assert json_response["number_of_apply_policies_calls"] == 0
+
+    def test_apply_policies_always_calls_authenticate_no_matter_previous_request_context(
+        self,
+    ):
+        payload = self._get_payload([self.REGULAR_USER_ROLE])
+        headers = custom_token.get_authorization_header(payload)
+
+        response = requests.get(self.ENDPOINT, headers=headers)
+        json_response = response.json()
+        assert response.status_code == 200
+        assert json_response["number_of_authenticate_calls"] == 0
+        assert json_response["number_of_apply_policies_calls"] == 1
+
+        response = requests.get(self.ENDPOINT, headers=headers)
+        json_response = response.json()
+        assert response.status_code == 200
+        assert json_response["number_of_authenticate_calls"] == 0
+        assert json_response["number_of_apply_policies_calls"] == 1
+
+    def test_authenticate_not_called_when_second_request_is_exactly_the_same_as_previous_one(
+        self,
+    ):
+        payload = self._get_payload([self.REGULAR_USER_ROLE])
+        headers = custom_token.get_authorization_header(payload)
+
+        response = requests.put(self.ENDPOINT, headers=headers)
+        json_response = response.json()
+        assert response.status_code == 200
+        assert json_response["number_of_authenticate_calls"] == 1
+        assert json_response["number_of_apply_policies_calls"] == 0
+
+        response = requests.put(self.ENDPOINT, headers=headers)
+        json_response = response.json()
+        assert response.status_code == 200
+        assert json_response["number_of_authenticate_calls"] == 0
+        assert json_response["number_of_apply_policies_calls"] == 0
+
     def test_user_context_can_be_modified_in_authorization_policies(self):
         payload = self._get_payload([self.REGULAR_USER_ROLE])
         headers = custom_token.get_authorization_header(payload)
@@ -75,37 +140,7 @@ class TestPolicyFactory:
             "relations.hasTenant": "/"
         }
 
-    def test_authenticate_on_generic_endpoint_is_not_called_when_goes_through_concrete_endpoint_that_already_authenticated(
-        self,
-    ):
-        payload = self._get_payload([self.REGULAR_USER_ROLE])
-        headers = custom_token.get_authorization_header(payload)
-
-        response = requests.get(self.ENDPOINT, headers=headers)
-        json_response = response.json()
-        assert response.status_code == 200
-        assert json_response["number_of_authenticate_calls"] == 0
-        assert json_response["number_of_apply_policies_calls"] == 1
-
-        response = requests.put(self.ENDPOINT, headers=headers)
-        json_response = response.json()
-        assert response.status_code == 200
-        assert json_response["number_of_authenticate_calls"] == 1
-        assert json_response["number_of_apply_policies_calls"] == 0
-
-    def test_request_without_token_returns_401_after_a_successful_request_with_token(
-        self,
-    ):
-        payload = self._get_payload([self.REGULAR_USER_ROLE])
-        headers = custom_token.get_authorization_header(payload)
-
-        response = requests.get(self.ENDPOINT, headers=headers)
-        assert response.status_code == 200
-
-        response = requests.put(self.ENDPOINT)
-        assert response.status_code == 401
-
-    def test_user_context_is_cleared_correctly_for_single_user(self):
+    def test_user_context_is_cleared_correctly(self):
         payload = self._get_payload([self.REGULAR_USER_ROLE])
         headers = custom_token.get_authorization_header(payload)
 
@@ -122,9 +157,6 @@ class TestPolicyFactory:
         assert response.status_code == 200
         assert json_response["bag"] == {}
         assert json_response["access_restrictions"]["filters"] == None
-
-    def test_user_context_of_multiple_users_do_not_interfere_with_each_other(self):
-        pytest.fail("Not implemented yet.")
 
     def _get_payload(self, roles):
         return {
