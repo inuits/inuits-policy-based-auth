@@ -1,8 +1,7 @@
-import json
 import os
 import requests
 
-from .. import flask_process, custom_token
+from .. import flask_process, custom_token, helpers
 from dotenv import load_dotenv
 
 
@@ -28,7 +27,7 @@ class TestDefaultTenantPolicy:
         flask_process.assert_running()
 
     def test_policy_defines_default_tenant_with_correct_roles_and_scopes(self):
-        payload = self._get_payload([self.SUPER_ADMIN_ROLE])
+        payload = helpers.get_payload([self.SUPER_ADMIN_ROLE])
         headers = custom_token.get_authorization_header(payload)
 
         response = requests.get(self.ENDPOINT, headers=headers)
@@ -37,20 +36,10 @@ class TestDefaultTenantPolicy:
         assert response.status_code == 200
         assert response_body["x_tenant"]["id"] == "/"
         assert response_body["x_tenant"]["roles"] == [self.SUPER_ADMIN_ROLE]
-        assert response_body["x_tenant"]["scopes"] == self._get_scopes(
+        assert response_body["x_tenant"]["scopes"] == helpers.get_scopes(
             self.SUPER_ADMIN_ROLE
         )
         assert response_body["x_tenant"]["raw"] == {}
-
-    def _get_payload(self, roles):
-        return {
-            "azp": "inuits-policy-based-auth",
-            "resource_access": {"inuits-policy-based-auth": {"roles": roles}},
-        }
-
-    def _get_scopes(self, role):
-        with open(str(os.getenv("TEST_API_SCOPES")), "r") as scopes_file:
-            return json.load(scopes_file)[role]
 
     @classmethod
     def teardown_class(cls):

@@ -1,8 +1,7 @@
-import json
 import os
 import requests
 
-from .. import flask_process, custom_token
+from .. import flask_process, custom_token, helpers
 from dotenv import load_dotenv
 
 
@@ -28,7 +27,7 @@ class TestScopeBasedPolicy:
         flask_process.assert_running()
 
     def test_request_with_insufficient_scopes_returns_403(self):
-        payload = self._get_payload(["datateam"])
+        payload = helpers.get_payload(["datateam"])
         headers = custom_token.get_authorization_header(payload)
 
         response = requests.get(self.ENDPOINT, headers=headers)
@@ -36,7 +35,7 @@ class TestScopeBasedPolicy:
         assert response.status_code == 403
 
     def test_regular_user_with_invalid_scopes_cannot_successfully_do_post_request(self):
-        payload = self._get_payload([self.REGULAR_USER_ROLE])
+        payload = helpers.get_payload([self.REGULAR_USER_ROLE])
         headers = custom_token.get_authorization_header(payload)
 
         response = requests.post(self.ENDPOINT, headers=headers)
@@ -44,7 +43,7 @@ class TestScopeBasedPolicy:
         assert response.status_code == 403
 
     def test_request_with_sufficient_scopes_returns_200(self):
-        payload = self._get_payload([self.REGULAR_USER_ROLE])
+        payload = helpers.get_payload([self.REGULAR_USER_ROLE])
         headers = custom_token.get_authorization_header(payload)
 
         response = requests.get(self.ENDPOINT, headers=headers)
@@ -52,19 +51,9 @@ class TestScopeBasedPolicy:
         response_body = response.json()
         assert response.status_code == 200
         assert response_body["x_tenant"]["roles"] == [self.REGULAR_USER_ROLE]
-        assert response_body["x_tenant"]["scopes"] == self._get_scopes(
+        assert response_body["x_tenant"]["scopes"] == helpers.get_scopes(
             self.REGULAR_USER_ROLE
         )
-
-    def _get_payload(self, roles):
-        return {
-            "azp": "inuits-policy-based-auth",
-            "resource_access": {"inuits-policy-based-auth": {"roles": roles}},
-        }
-
-    def _get_scopes(self, role):
-        with open(str(os.getenv("TEST_API_SCOPES")), "r") as scopes_file:
-            return json.load(scopes_file)[role]
 
     @classmethod
     def teardown_class(cls):

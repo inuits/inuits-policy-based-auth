@@ -1,8 +1,7 @@
-import json
 import os
 import requests
 
-from . import flask_process, custom_token
+from . import flask_process, custom_token, helpers
 from dotenv import load_dotenv
 
 
@@ -59,7 +58,7 @@ class TestPolicyFactory:
     def test_request_without_token_returns_401_after_a_successful_request_with_token(
         self,
     ):
-        payload = self._get_payload([self.REGULAR_USER_ROLE])
+        payload = helpers.get_payload([self.REGULAR_USER_ROLE])
         headers = custom_token.get_authorization_header(payload)
 
         response = requests.get(self.ENDPOINT, headers=headers)
@@ -71,7 +70,7 @@ class TestPolicyFactory:
     def test_authenticate_on_generic_endpoint_is_not_called_when_request_first_goes_through_concrete_endpoint_that_already_authenticated(
         self,
     ):
-        payload = self._get_payload([self.REGULAR_USER_ROLE])
+        payload = helpers.get_payload([self.REGULAR_USER_ROLE])
         headers = custom_token.get_authorization_header(payload)
 
         response = requests.get(self.ENDPOINT, headers=headers)
@@ -89,7 +88,7 @@ class TestPolicyFactory:
     def test_apply_policies_always_calls_authenticate_no_matter_previous_request_context(
         self,
     ):
-        payload = self._get_payload([self.REGULAR_USER_ROLE])
+        payload = helpers.get_payload([self.REGULAR_USER_ROLE])
         headers = custom_token.get_authorization_header(payload)
 
         response = requests.get(self.ENDPOINT, headers=headers)
@@ -107,7 +106,7 @@ class TestPolicyFactory:
     def test_authenticate_not_called_when_second_request_is_exactly_the_same_as_previous_one(
         self,
     ):
-        payload = self._get_payload([self.REGULAR_USER_ROLE])
+        payload = helpers.get_payload([self.REGULAR_USER_ROLE])
         headers = custom_token.get_authorization_header(payload)
 
         response = requests.put(self.ENDPOINT, headers=headers)
@@ -125,7 +124,7 @@ class TestPolicyFactory:
     def test_user_context_is_kept_when_authenticate_not_called_with_second_request(
         self,
     ):
-        payload = self._get_payload([self.REGULAR_USER_ROLE])
+        payload = helpers.get_payload([self.REGULAR_USER_ROLE])
         headers = custom_token.get_authorization_header(payload)
 
         requests.get(self.ENDPOINT, headers=headers)
@@ -151,7 +150,7 @@ class TestPolicyFactory:
         )
 
     def test_user_context_can_be_modified_in_authorization_policies(self):
-        payload = self._get_payload([self.REGULAR_USER_ROLE])
+        payload = helpers.get_payload([self.REGULAR_USER_ROLE])
         headers = custom_token.get_authorization_header(payload)
 
         response = requests.put(self.ENDPOINT, headers=headers)
@@ -169,7 +168,7 @@ class TestPolicyFactory:
         }
 
     def test_user_context_is_cleared_correctly(self):
-        payload = self._get_payload([self.REGULAR_USER_ROLE])
+        payload = helpers.get_payload([self.REGULAR_USER_ROLE])
         headers = custom_token.get_authorization_header(payload)
 
         response = requests.get(self.ENDPOINT, headers=headers)
@@ -185,16 +184,6 @@ class TestPolicyFactory:
         assert response.status_code == 200
         assert response_body["bag"] == {}
         assert response_body["access_restrictions"]["filters"] == None
-
-    def _get_payload(self, roles):
-        return {
-            "azp": "inuits-policy-based-auth",
-            "resource_access": {"inuits-policy-based-auth": {"roles": roles}},
-        }
-
-    def _get_scopes(self, role):
-        with open(str(os.getenv("TEST_API_SCOPES")), "r") as scopes_file:
-            return json.load(scopes_file)[role]
 
     @classmethod
     def teardown_class(cls):

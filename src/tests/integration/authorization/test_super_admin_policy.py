@@ -1,7 +1,7 @@
 import os
 import requests
 
-from .. import flask_process, custom_token
+from .. import flask_process, custom_token, helpers
 from dotenv import load_dotenv
 
 
@@ -35,7 +35,7 @@ class TestSuperAdminPolicy:
         assert response.status_code == 403
 
     def test_request_with_wrong_role_returns_403(self):
-        payload = self._get_payload(["regular_user"])
+        payload = helpers.get_payload(["regular_user"])
         headers = custom_token.get_authorization_header(payload)
 
         response = requests.get(self.ENDPOINT, headers=headers)
@@ -43,7 +43,7 @@ class TestSuperAdminPolicy:
         assert response.status_code == 403
 
     def test_get_request_with_correct_role_returns_200(self):
-        payload = self._get_payload([self.SUPER_ADMIN_ROLE])
+        payload = helpers.get_payload([self.SUPER_ADMIN_ROLE])
         headers = custom_token.get_authorization_header(payload)
 
         response = requests.get(self.ENDPOINT, headers=headers)
@@ -52,19 +52,13 @@ class TestSuperAdminPolicy:
         assert response.json()["x_tenant"]["roles"] == [self.SUPER_ADMIN_ROLE]
 
     def test_post_request_with_correct_role_returns_201(self):
-        payload = self._get_payload([self.SUPER_ADMIN_ROLE])
+        payload = helpers.get_payload([self.SUPER_ADMIN_ROLE])
         headers = custom_token.get_authorization_header(payload)
 
         response = requests.post(self.ENDPOINT, headers=headers)
 
         assert response.status_code == 201
         assert response.json()["x_tenant"]["roles"] == [self.SUPER_ADMIN_ROLE]
-
-    def _get_payload(self, roles):
-        return {
-            "azp": "inuits-policy-based-auth",
-            "resource_access": {"inuits-policy-based-auth": {"roles": roles}},
-        }
 
     @classmethod
     def teardown_class(cls):
