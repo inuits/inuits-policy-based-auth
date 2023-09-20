@@ -41,7 +41,8 @@ Example configuration file:
   "[app_name_1]": {
     "policies": {
       "authentication": [
-        "token_based_policies.authlib_flask_oauth2_policy"
+        "token_based_policies.authlib_flask_oauth2_policy",
+        "token_based_policies.default_tenant_policy"
       ],
       "authorization": [
         "super_admin_policy",
@@ -52,7 +53,8 @@ Example configuration file:
   "[app_name_2]": {
     "policies": {
       "authentication": [
-        "token_based_policies.authlib_flask_oauth2_policy"
+        "token_based_policies.authlib_flask_oauth2_policy",
+        "token_based_policies.default_tenant_policy"
       ],
       "authorization": [
         "super_admin_policy",
@@ -79,8 +81,7 @@ from logging import Logger
 def load_policies(policy_factory: PolicyFactory, logger: Logger):
     apps = {}
 
-    configuration_file_name = os.getenv("[CONFIGURATION_FILE_NAME]") or ""
-    with open(configuration_file_name) as configuration_file:
+    with open(str(os.getenv("[CONFIGURATION_FILE_NAME]")), "r") as configuration_file:
         apps = json.load(configuration_file)
 
     for app in apps:
@@ -128,10 +129,11 @@ def __instantiate_authentication_policy(policy_module_name, policy, logger: Logg
     if policy_module_name == "token_based_policies.authlib_flask_oauth2_policy":
         return policy(
             logger,
-            os.getenv("ROLE_SCOPE_MAPPING", os.getenv("TEST_API_SCOPES")),
             os.getenv("STATIC_ISSUER"),
             os.getenv("STATIC_PUBLIC_KEY"),
         )
+    if policy_module_name == "token_based_policies.default_tenant_policy":
+        return policy(os.getenv("ROLE_SCOPE_MAPPING", os.getenv("API_SCOPES")))
 
     return policy()
 ```
@@ -172,12 +174,12 @@ from inuits_policy_based_auth import BaseAuthorizationPolicy
 
 
 class OpenDataPolicy(BaseAuthorizationPolicy):
-    def authorize(self, policy_context, user_context, request_context):
+    def authorize(self, policy_context, _, request_context):
         request = request_context.http_request
-        if request.method == "GET" and "inuits" in user_context.tenant_names:
+        if request.method == "GET":
             policy_context.access_verdict = True
 
-        return policy_context, user_context
+        return policy_context
 ```
 
 ## Usage
@@ -199,10 +201,12 @@ class Entity():
 You can also use the ```authenticate``` decorator to only apply authentication policies:
 ```python
 from app import policy_factory
+from flask import request
+from inuits_policy_based_auth import RequestContext
 
 
 class Entity():
-    @policy_factory.authenticate()
+    @policy_factory.authenticate(RequestContext(request))
     def get(self):
         ...
 ```
