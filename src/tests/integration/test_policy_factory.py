@@ -122,6 +122,34 @@ class TestPolicyFactory:
         assert json_response["number_of_authenticate_calls"] == 0
         assert json_response["number_of_apply_policies_calls"] == 0
 
+    def test_user_context_is_kept_when_authenticate_not_called_with_second_request(
+        self,
+    ):
+        payload = self._get_payload([self.REGULAR_USER_ROLE])
+        headers = custom_token.get_authorization_header(payload)
+
+        requests.get(self.ENDPOINT, headers=headers)
+        response = requests.put(self.ENDPOINT, headers=headers)
+        json_response_1 = response.json()
+        assert response.status_code == 200
+        assert json_response_1["number_of_authenticate_calls"] == 1
+        assert json_response_1["number_of_apply_policies_calls"] == 0
+
+        response = requests.put(self.ENDPOINT, headers=headers)
+        json_response_2 = response.json()
+        assert response.status_code == 200
+        assert json_response_2["number_of_authenticate_calls"] == 0
+        assert json_response_2["number_of_apply_policies_calls"] == 0
+
+        assert json_response_1["auth_objects"] == json_response_2["auth_objects"]
+        assert json_response_1["email"] == json_response_2["email"]
+        assert json_response_1["x_tenant"] == json_response_2["x_tenant"]
+        assert json_response_1["bag"] == json_response_2["bag"]
+        assert (
+            json_response_1["access_restrictions"]
+            == json_response_2["access_restrictions"]
+        )
+
     def test_user_context_can_be_modified_in_authorization_policies(self):
         payload = self._get_payload([self.REGULAR_USER_ROLE])
         headers = custom_token.get_authorization_header(payload)
