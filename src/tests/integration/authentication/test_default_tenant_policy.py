@@ -33,14 +33,14 @@ class TestDefaultTenantPolicy:
 
         response = requests.get(self.ENDPOINT, headers=headers)
 
-        json_response = response.json()
+        response_body = response.json()
         assert response.status_code == 200
-        assert json_response["x_tenant"]["id"] == "/"
-        assert json_response["x_tenant"]["roles"] == [self.SUPER_ADMIN_ROLE]
-        assert json_response["x_tenant"]["scopes"] == self._get_scopes(
+        assert response_body["x_tenant"]["id"] == "/"
+        assert response_body["x_tenant"]["roles"] == [self.SUPER_ADMIN_ROLE]
+        assert response_body["x_tenant"]["scopes"] == self._get_scopes(
             self.SUPER_ADMIN_ROLE
         )
-        assert json_response["x_tenant"]["raw"] == {}
+        assert response_body["x_tenant"]["raw"] == {}
 
     def _get_payload(self, roles):
         return {

@@ -49,10 +49,10 @@ class TestScopeBasedPolicy:
 
         response = requests.get(self.ENDPOINT, headers=headers)
 
-        json_response = response.json()
+        response_body = response.json()
         assert response.status_code == 200
-        assert json_response["x_tenant"]["roles"] == [self.REGULAR_USER_ROLE]
-        assert json_response["x_tenant"]["scopes"] == self._get_scopes(
+        assert response_body["x_tenant"]["roles"] == [self.REGULAR_USER_ROLE]
+        assert response_body["x_tenant"]["scopes"] == self._get_scopes(
             self.REGULAR_USER_ROLE
         )
 

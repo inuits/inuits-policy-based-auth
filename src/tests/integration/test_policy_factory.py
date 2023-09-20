@@ -75,16 +75,16 @@ class TestPolicyFactory:
         headers = custom_token.get_authorization_header(payload)
 
         response = requests.get(self.ENDPOINT, headers=headers)
-        json_response = response.json()
+        response_body = response.json()
         assert response.status_code == 200
-        assert json_response["number_of_authenticate_calls"] == 0
-        assert json_response["number_of_apply_policies_calls"] == 1
+        assert response_body["number_of_authenticate_calls"] == 0
+        assert response_body["number_of_apply_policies_calls"] == 1
 
         response = requests.put(self.ENDPOINT, headers=headers)
-        json_response = response.json()
+        response_body = response.json()
         assert response.status_code == 200
-        assert json_response["number_of_authenticate_calls"] == 1
-        assert json_response["number_of_apply_policies_calls"] == 0
+        assert response_body["number_of_authenticate_calls"] == 1
+        assert response_body["number_of_apply_policies_calls"] == 0
 
     def test_apply_policies_always_calls_authenticate_no_matter_previous_request_context(
         self,
@@ -93,16 +93,16 @@ class TestPolicyFactory:
         headers = custom_token.get_authorization_header(payload)
 
         response = requests.get(self.ENDPOINT, headers=headers)
-        json_response = response.json()
+        response_body = response.json()
         assert response.status_code == 200
-        assert json_response["number_of_authenticate_calls"] == 0
-        assert json_response["number_of_apply_policies_calls"] == 1
+        assert response_body["number_of_authenticate_calls"] == 0
+        assert response_body["number_of_apply_policies_calls"] == 1
 
         response = requests.get(self.ENDPOINT, headers=headers)
-        json_response = response.json()
+        response_body = response.json()
         assert response.status_code == 200
-        assert json_response["number_of_authenticate_calls"] == 0
-        assert json_response["number_of_apply_policies_calls"] == 1
+        assert response_body["number_of_authenticate_calls"] == 0
+        assert response_body["number_of_apply_policies_calls"] == 1
 
     def test_authenticate_not_called_when_second_request_is_exactly_the_same_as_previous_one(
         self,
@@ -111,16 +111,16 @@ class TestPolicyFactory:
         headers = custom_token.get_authorization_header(payload)
 
         response = requests.put(self.ENDPOINT, headers=headers)
-        json_response = response.json()
+        response_body = response.json()
         assert response.status_code == 200
-        assert json_response["number_of_authenticate_calls"] == 1
-        assert json_response["number_of_apply_policies_calls"] == 0
+        assert response_body["number_of_authenticate_calls"] == 1
+        assert response_body["number_of_apply_policies_calls"] == 0
 
         response = requests.put(self.ENDPOINT, headers=headers)
-        json_response = response.json()
+        response_body = response.json()
         assert response.status_code == 200
-        assert json_response["number_of_authenticate_calls"] == 0
-        assert json_response["number_of_apply_policies_calls"] == 0
+        assert response_body["number_of_authenticate_calls"] == 0
+        assert response_body["number_of_apply_policies_calls"] == 0
 
     def test_user_context_is_kept_when_authenticate_not_called_with_second_request(
         self,
@@ -130,24 +130,24 @@ class TestPolicyFactory:
 
         requests.get(self.ENDPOINT, headers=headers)
         response = requests.put(self.ENDPOINT, headers=headers)
-        json_response_1 = response.json()
+        response_body_1 = response.json()
         assert response.status_code == 200
-        assert json_response_1["number_of_authenticate_calls"] == 1
-        assert json_response_1["number_of_apply_policies_calls"] == 0
+        assert response_body_1["number_of_authenticate_calls"] == 1
+        assert response_body_1["number_of_apply_policies_calls"] == 0
 
         response = requests.put(self.ENDPOINT, headers=headers)
-        json_response_2 = response.json()
+        response_body_2 = response.json()
         assert response.status_code == 200
-        assert json_response_2["number_of_authenticate_calls"] == 0
-        assert json_response_2["number_of_apply_policies_calls"] == 0
+        assert response_body_2["number_of_authenticate_calls"] == 0
+        assert response_body_2["number_of_apply_policies_calls"] == 0
 
-        assert json_response_1["auth_objects"] == json_response_2["auth_objects"]
-        assert json_response_1["email"] == json_response_2["email"]
-        assert json_response_1["x_tenant"] == json_response_2["x_tenant"]
-        assert json_response_1["bag"] == json_response_2["bag"]
+        assert response_body_1["auth_objects"] == response_body_2["auth_objects"]
+        assert response_body_1["email"] == response_body_2["email"]
+        assert response_body_1["x_tenant"] == response_body_2["x_tenant"]
+        assert response_body_1["bag"] == response_body_2["bag"]
         assert (
-            json_response_1["access_restrictions"]
-            == json_response_2["access_restrictions"]
+            response_body_1["access_restrictions"]
+            == response_body_2["access_restrictions"]
         )
 
     def test_user_context_can_be_modified_in_authorization_policies(self):
@@ -155,16 +155,16 @@ class TestPolicyFactory:
         headers = custom_token.get_authorization_header(payload)
 
         response = requests.put(self.ENDPOINT, headers=headers)
-        json_response = response.json()
+        response_body = response.json()
         assert response.status_code == 200
-        assert json_response["bag"] == {}
-        assert json_response["access_restrictions"]["filters"] == None
+        assert response_body["bag"] == {}
+        assert response_body["access_restrictions"]["filters"] == None
 
         response = requests.get(self.ENDPOINT, headers=headers)
-        json_response = response.json()
+        response_body = response.json()
         assert response.status_code == 200
-        assert json_response["bag"] == {"test": "test"}
-        assert json_response["access_restrictions"]["filters"] == {
+        assert response_body["bag"] == {"test": "test"}
+        assert response_body["access_restrictions"]["filters"] == {
             "relations.hasTenant": "/"
         }
 
@@ -173,18 +173,18 @@ class TestPolicyFactory:
         headers = custom_token.get_authorization_header(payload)
 
         response = requests.get(self.ENDPOINT, headers=headers)
-        json_response = response.json()
+        response_body = response.json()
         assert response.status_code == 200
-        assert json_response["bag"] == {"test": "test"}
-        assert json_response["access_restrictions"]["filters"] == {
+        assert response_body["bag"] == {"test": "test"}
+        assert response_body["access_restrictions"]["filters"] == {
             "relations.hasTenant": "/"
         }
 
         response = requests.put(self.ENDPOINT, headers=headers)
-        json_response = response.json()
+        response_body = response.json()
         assert response.status_code == 200
-        assert json_response["bag"] == {}
-        assert json_response["access_restrictions"]["filters"] == None
+        assert response_body["bag"] == {}
+        assert response_body["access_restrictions"]["filters"] == None
 
     def _get_payload(self, roles):
         return {
