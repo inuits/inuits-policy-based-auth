@@ -175,6 +175,7 @@ class PolicyFactory:
                         from flask import make_response
 
                         try:
+                            self.__log_decorator("authenticate")
                             self._authenticate(decorated_function, request_context)
                         except (TypeError, PolicyFactoryException) as error:
                             return make_response(
@@ -234,6 +235,7 @@ class PolicyFactory:
                     from flask import make_response
 
                     try:
+                        self.__log_decorator("apply_policies")
                         self._apply_policies_decorated_function_wrapper_implementation(
                             decorated_function, request_context
                         )
@@ -321,3 +323,7 @@ class PolicyFactory:
             )
 
         return False
+
+    def __log_decorator(self, name: str):
+        with open(str(os.getenv("TEST_API_LOGS")), "a") as logs:
+            logs.write(f"{name}\n")

@@ -78,7 +78,20 @@ class TestPolicyFactory:
     def test_authenticate_on_generic_endpoint_is_not_called_when_goes_through_concrete_endpoint_that_already_authenticated(
         self,
     ):
-        pytest.fail("Not implemented yet.")
+        payload = self._get_payload([self.REGULAR_USER_ROLE])
+        headers = custom_token.get_authorization_header(payload)
+
+        response = requests.get(self.ENDPOINT, headers=headers)
+        json_response = response.json()
+        assert response.status_code == 200
+        assert json_response["number_of_authenticate_calls"] == 0
+        assert json_response["number_of_apply_policies_calls"] == 1
+
+        response = requests.put(self.ENDPOINT, headers=headers)
+        json_response = response.json()
+        assert response.status_code == 200
+        assert json_response["number_of_authenticate_calls"] == 1
+        assert json_response["number_of_apply_policies_calls"] == 0
 
     def test_request_without_token_returns_401_after_a_successful_request_with_token(
         self,

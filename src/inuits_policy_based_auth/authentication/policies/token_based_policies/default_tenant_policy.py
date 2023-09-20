@@ -1,6 +1,5 @@
 import json
 
-from authlib.oauth2 import OAuth2Error
 from inuits_policy_based_auth.authentication.base_authentication_policy import (
     BaseAuthenticationPolicy,
 )

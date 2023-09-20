@@ -25,7 +25,13 @@ def assert_running():
         pytest.fail("flask_process is not running.")
 
 
+def clear_logs():
+    with open(str(os.getenv("TEST_API_LOGS")), "w") as logs:
+        logs.write("")
+
+
 def stop():
+    clear_logs()
     _overwrite_configuration_file()
     _flask_process.kill()
     sleep(_sleep_delay)
