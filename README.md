@@ -127,10 +127,16 @@ def __get_class(app, auth_type, policy_module_name):
 
 def __instantiate_authentication_policy(policy_module_name, policy, logger: Logger):
     if policy_module_name == "token_based_policies.authlib_flask_oauth2_policy":
+        allow_anonymous_users = (
+            True
+            if os.getenv("ALLOW_ANONYMOUS_USERS", "false").lower() == "true"
+            else False
+        )
         return policy(
             logger,
             os.getenv("STATIC_ISSUER"),
             os.getenv("STATIC_PUBLIC_KEY"),
+            allow_anonymous_users,
         )
     if policy_module_name == "token_based_policies.default_tenant_policy":
         return policy(os.getenv("ROLE_SCOPE_MAPPING", os.getenv("API_SCOPES")))

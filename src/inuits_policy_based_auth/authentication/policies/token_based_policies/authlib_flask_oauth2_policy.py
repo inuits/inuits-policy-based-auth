@@ -6,7 +6,7 @@ from abc import ABC
 from authlib.integrations.flask_oauth2 import ResourceProtector
 from authlib.jose import jwt
 from authlib.oauth2 import OAuth2Error
-from authlib.oauth2.rfc6750 import BearerTokenValidator
+from authlib.oauth2.rfc6750 import BearerTokenValidator, InvalidTokenError
 from authlib.oauth2.rfc7523 import JWTBearerToken
 from inuits_policy_based_auth.authentication.base_authentication_policy import (
     BaseAuthenticationPolicy,
@@ -42,6 +42,7 @@ class AuthlibFlaskOauth2Policy(BaseAuthenticationPolicy):
         logger: Logger,
         static_issuer=None,
         static_public_key=None,
+        allow_anonymous_users=False,
         allowed_issuers=None,
         **kwargs,
     ):
@@ -57,6 +58,7 @@ class AuthlibFlaskOauth2Policy(BaseAuthenticationPolicy):
         self._resource_protector = resource_protector
 
         self._logger = logger
+        self._allow_anonymous_users = allow_anonymous_users
 
     def authenticate(self, user_context, _):
         """
@@ -87,8 +89,13 @@ class AuthlibFlaskOauth2Policy(BaseAuthenticationPolicy):
 
             user_context.email = flattened_token.get("email", "")
             return user_context
-        except OAuth2Error as error:
+        except InvalidTokenError as error:
             raise Unauthorized(str(error))
+        except OAuth2Error as error:
+            if self._allow_anonymous_users:
+                return user_context
+            else:
+                raise Unauthorized(str(error))
 
 
 class JWTValidator(BearerTokenValidator, ABC):
