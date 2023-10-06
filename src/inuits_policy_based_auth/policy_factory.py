@@ -288,8 +288,7 @@ class PolicyFactory:
         )
         for policy in self._authentication_policies[key]:
             user_context = policy.apply(user_context, request_context)
-
-        self._user_context = user_context
+            self._user_context = user_context
 
     def _authorize(self, decorated_function, request_context: RequestContext):
         if not self._user_context:
