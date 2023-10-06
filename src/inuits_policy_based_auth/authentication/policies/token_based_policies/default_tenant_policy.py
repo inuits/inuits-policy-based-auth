@@ -15,11 +15,14 @@ class DefaultTenantPolicy(BaseAuthenticationPolicy):
 
     Parameters:
     -----------
+    token_schema : dict
+        Dict containing mappings between property <-> path.to.that.property.in.token.
     role_scope_mapping_filepath : str, optional
         Path to a JSON file containing a mapping of scopes to their corresponding roles.
     """
 
-    def __init__(self, role_scope_mapping_filepath=None):
+    def __init__(self, token_schema: dict, role_scope_mapping_filepath=None):
+        self._token_schema = token_schema
         self._role_scope_mapping = self.__load_role_scope_mapping(
             role_scope_mapping_filepath
         )
@@ -54,7 +57,7 @@ class DefaultTenantPolicy(BaseAuthenticationPolicy):
 
             user_context.x_tenant.id = "/"
             user_context.x_tenant.roles = flattened_token.get(
-                f"resource_access.{token['azp']}.roles", []
+                self._token_schema["roles"], []
             )
             if self._role_scope_mapping:
                 for role in user_context.x_tenant.roles:

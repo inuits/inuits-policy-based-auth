@@ -24,6 +24,8 @@ class AuthlibFlaskOauth2Policy(BaseAuthenticationPolicy):
     -----------
     logger : Logger
         Logger object for logging authentication events and errors.
+    token_schema : dict
+        Dict containing mappings between property <-> path.to.that.property.in.token.
     static_issuer : str, optional
         A string representing the issuer of the JWT. This parameter is required
         if remote token validation is not enabled.
@@ -33,6 +35,8 @@ class AuthlibFlaskOauth2Policy(BaseAuthenticationPolicy):
     allowed_issuers : List[str], optional
         A list of token issuers whose tokens are allowed. If this parameter is not
         passed or the list is empty, all issuers are allowed.
+    allow_anonymous_users : bool, optional
+        A bool about whether anonymous users are allowed to do requests.
     **kwargs : dict
         Any additional keyword arguments to be passed to the JWTValidator constructor.
     """
@@ -40,10 +44,11 @@ class AuthlibFlaskOauth2Policy(BaseAuthenticationPolicy):
     def __init__(
         self,
         logger: Logger,
+        token_schema: dict,
         static_issuer=None,
         static_public_key=None,
-        allow_anonymous_users=False,
         allowed_issuers=None,
+        allow_anonymous_users=False,
         **kwargs,
     ):
         validator = JWTValidator(
@@ -58,6 +63,7 @@ class AuthlibFlaskOauth2Policy(BaseAuthenticationPolicy):
         self._resource_protector = resource_protector
 
         self._logger = logger
+        self._token_schema = token_schema
         self._allow_anonymous_users = allow_anonymous_users
 
     def authenticate(self, user_context, _):
@@ -87,7 +93,9 @@ class AuthlibFlaskOauth2Policy(BaseAuthenticationPolicy):
             user_context.auth_objects.add_key_value_pair("token", token)
             flattened_token = user_context.flatten_auth_object(token)
 
-            user_context.email = flattened_token.get("email", "").lower()
+            user_context.email = flattened_token.get(
+                self._token_schema["email"], ""
+            ).lower()
             return user_context
         except InvalidTokenError as error:
             raise Unauthorized(str(error))
