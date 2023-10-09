@@ -1,4 +1,5 @@
 {
+    "id": "sub",
     "email": "email",
     "roles": "resource_access.inuits-policy-based-auth.roles"
 }

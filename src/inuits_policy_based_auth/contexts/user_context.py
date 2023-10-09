@@ -13,6 +13,8 @@ class UserContext:
     auth_objects : ImmutableDict
         An immutable dict containing objects used to authenticate a user,
         for example a token.
+    id : str
+        The id of the authenticated user.
     email : str
         The email of the authenticated user.
     x_tenant : Tenant
@@ -34,6 +36,7 @@ class UserContext:
 
     def __init__(self):
         self._auth_objects = ImmutableDict({})
+        self._id = ""
         self._email = ""
         self._x_tenant = Tenant()
         self._tenants: list[Tenant] = []
@@ -48,6 +51,16 @@ class UserContext:
         """
 
         return self._auth_objects
+
+    @property
+    def id(self):
+        """The id of the authenticated user."""
+
+        return self._id
+
+    @id.setter
+    def id(self, id: str):
+        self._id = id
 
     @property
     def email(self):
