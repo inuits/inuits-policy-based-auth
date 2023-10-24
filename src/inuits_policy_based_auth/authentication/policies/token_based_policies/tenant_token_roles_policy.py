@@ -1,17 +1,14 @@
 import json
 
-from inuits_policy_based_auth.authentication.base_authentication_policy import (
-    BaseAuthenticationPolicy,
-)
+from inuits_policy_based_auth import BaseAuthenticationPolicy
 from inuits_policy_based_auth.contexts import UserContext
-from inuits_policy_based_auth.helpers.tenant import Tenant
 from werkzeug.exceptions import Unauthorized
 
 
-class DefaultTenantPolicy(BaseAuthenticationPolicy):
+class TenantTokenRolesPolicy(BaseAuthenticationPolicy):
     """
-    An authentication policy that defines a default x-tenant and includes the
-    roles and scope from the token in it.
+    An authentication policy that defines the roles and scope from the token
+    for the x-tenant.
 
     Parameters:
     -----------
@@ -53,21 +50,16 @@ class DefaultTenantPolicy(BaseAuthenticationPolicy):
         try:
             token = user_context.auth_objects["token"]
             flattened_token = user_context.flatten_auth_object(token)
-            user_context.x_tenant = Tenant()
-
-            user_context.x_tenant.id = "/"
             user_context.x_tenant.roles = flattened_token.get(
                 self._token_schema["roles"], []
             )
-            if self._role_scope_mapping:
-                for role in user_context.x_tenant.roles:
-                    try:
-                        user_context.x_tenant.scopes.extend(
-                            self._role_scope_mapping[role]
-                        )
-                    except KeyError:
-                        continue
-
+            if not self._role_scope_mapping:
+                return user_context
+            for role in user_context.x_tenant.roles:
+                try:
+                    user_context.x_tenant.scopes.extend(self._role_scope_mapping[role])
+                except KeyError:
+                    continue
             return user_context
         except Exception:
             raise Unauthorized()
