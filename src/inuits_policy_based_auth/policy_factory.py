@@ -306,14 +306,14 @@ class PolicyFactory:
 
             if policy_context.access_verdict:
                 return
-            elif policy_context.access_verdict == False:
+            elif policy_context.access_verdict is False:
                 break
 
         raise Forbidden()
 
     def _get_key_for_policy_mapping(self, policy_dict: dict, decorated_function) -> str:
         for key in policy_dict.keys():
-            if regex.match(rf"^{key}.*", decorated_function.__module__) != None:
+            if regex.match(rf"^{key}.*", decorated_function.__module__) is not None:
                 return key
 
         if self._fallback_key_for_policy_mapping:
@@ -329,7 +329,7 @@ class PolicyFactory:
                     rf".*/inuits-policy-based-auth/{os.getenv('FLASK_APP')}$",
                     str(decorated_function_module.__file__),
                 )
-                != None
+                is not None
             )
 
         return False
