@@ -13,7 +13,7 @@ class RequestContext:
         rely on scope-based authorization.
     """
 
-    def __init__(self, http_request, resource_scopes: list[str] = []):
+    def __init__(self, http_request, resource_scopes: list[str] = None):
         """
         Parameters
         ----------
@@ -25,7 +25,7 @@ class RequestContext:
         """
 
         self._http_request = http_request
-        self._resource_scopes = resource_scopes
+        self._resource_scopes = resource_scopes if resource_scopes else []
 
     @property
     def http_request(self):
