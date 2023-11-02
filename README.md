@@ -42,7 +42,7 @@ Example configuration file:
     "policies": {
       "authentication": [
         "token_based_policies.authlib_flask_oauth2_policy",
-        "token_based_policies.default_tenant_policy"
+        "token_based_policies.tenant_token_roles_policy"
       ],
       "authorization": [
         "super_admin_policy",
@@ -54,7 +54,7 @@ Example configuration file:
     "policies": {
       "authentication": [
         "token_based_policies.authlib_flask_oauth2_policy",
-        "token_based_policies.default_tenant_policy"
+        "token_based_policies.tenant_token_roles_policy"
       ],
       "authorization": [
         "super_admin_policy",
@@ -142,7 +142,7 @@ def __instantiate_authentication_policy(policy_module_name, policy, logger: Logg
             None,
             allow_anonymous_users,
         )
-    if policy_module_name == "token_based_policies.default_tenant_policy":
+    if policy_module_name == "token_based_policies.tenant_token_roles_policy":
         return policy(
             token_schema, os.getenv("ROLE_SCOPE_MAPPING", os.getenv("API_SCOPES"))
         )

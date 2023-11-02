@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-class TestDefaultTenantPolicy:
+class TestTenantTokenRolesPolicy:
     ENDPOINT = str(os.getenv("ENDPOINT"))
     SUPER_ADMIN_ROLE = "super_admin"
 
@@ -17,7 +17,7 @@ class TestDefaultTenantPolicy:
         flask_process.set_app_policies(
             [
                 "token_based_policies.authlib_flask_oauth2_policy",
-                "token_based_policies.default_tenant_policy",
+                "token_based_policies.tenant_token_roles_policy",
             ],
             ["open_data_policy"],
         )
@@ -34,7 +34,7 @@ class TestDefaultTenantPolicy:
 
         response_body = response.json()
         assert response.status_code == 200
-        assert response_body["x_tenant"]["id"] == "/"
+        assert response_body["x_tenant"]["id"] == ""
         assert response_body["x_tenant"]["roles"] == [self.SUPER_ADMIN_ROLE]
         assert response_body["x_tenant"]["scopes"] == helpers.get_scopes(
             self.SUPER_ADMIN_ROLE

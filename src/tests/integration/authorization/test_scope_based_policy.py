@@ -17,7 +17,7 @@ class TestScopeBasedPolicy:
         flask_process.set_app_policies(
             [
                 "token_based_policies.authlib_flask_oauth2_policy",
-                "token_based_policies.default_tenant_policy",
+                "token_based_policies.tenant_token_roles_policy",
             ],
             ["scope_based_policy"],
         )
