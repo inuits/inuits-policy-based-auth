@@ -16,13 +16,21 @@ class TenantTokenRolesPolicy(BaseAuthenticationPolicy):
         Dict containing mappings between property <-> path.to.that.property.in.token.
     role_scope_mapping_filepath : str, optional
         Path to a JSON file containing a mapping of scopes to their corresponding roles.
+    allow_anonymous_users : bool, optional
+        A bool about whether anonymous users are allowed to do requests.
     """
 
-    def __init__(self, token_schema: dict, role_scope_mapping_filepath=None):
+    def __init__(
+        self,
+        token_schema: dict,
+        role_scope_mapping_filepath=None,
+        allow_anonymous_users=False,
+    ):
         self._token_schema = token_schema
         self._role_scope_mapping = self.__load_role_scope_mapping(
             role_scope_mapping_filepath
         )
+        self._allow_anonymous_users = allow_anonymous_users
 
     def authenticate(self, user_context: UserContext, _):
         """
@@ -62,7 +70,10 @@ class TenantTokenRolesPolicy(BaseAuthenticationPolicy):
                     continue
             return user_context
         except Exception:
-            raise Unauthorized()
+            if self._allow_anonymous_users:
+                return user_context
+            else:
+                raise Unauthorized()
 
     def __load_role_scope_mapping(self, file):
         try:

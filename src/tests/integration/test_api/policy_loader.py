@@ -42,14 +42,19 @@ def load_policies(policy_factory: PolicyFactory, logger: Logger):
 
 
 def __get_class(app, auth_type, policy_module_name):
-    module = None
-
-    try:
-        module = import_module(f"apps.{app}.policies.{auth_type}.{policy_module_name}")
-    except:
-        module = import_module(
-            f"inuits_policy_based_auth.{auth_type}.policies.{policy_module_name}"
-        )
+    locations = [
+        policy_module_name,
+        f"apps.{app}.policies.{auth_type}.{policy_module_name}",
+        f"inuits_policy_based_auth.{auth_type}.policies.{policy_module_name}",
+    ]
+    for location in locations:
+        try:
+            module = import_module(location)
+            break
+        except ModuleNotFoundError:
+            pass
+    else:
+        raise ModuleNotFoundError(f"Policy {policy_module_name} not found")
 
     policy_class_name = module.__name__.split(".")[-1].title().replace("_", "")
     policy = getattr(module, policy_class_name)
@@ -75,7 +80,11 @@ def __instantiate_authentication_policy(policy_module_name, policy, logger: Logg
         )
     if policy_module_name == "token_based_policies.tenant_token_roles_policy":
         return policy(
-            token_schema, os.getenv("ROLE_SCOPE_MAPPING", os.getenv("TEST_API_SCOPES"))
+            token_schema,
+            os.getenv("ROLE_SCOPE_MAPPING", os.getenv("TEST_API_SCOPES")),
+            True
+            if os.getenv("ALLOW_ANONYMOUS_USERS", "false").lower() == "true"
+            else False,
         )
 
     return policy()
