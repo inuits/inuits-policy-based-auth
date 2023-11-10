@@ -164,7 +164,7 @@ class TestPolicyFactory:
         assert response.status_code == 200
         assert response_body["bag"] == {"test": "test"}
         assert response_body["access_restrictions"]["filters"] == {
-            "relations.hasTenant": "/"
+            "relations.hasTenant": ""
         }
 
     def test_user_context_is_cleared_correctly(self):
@@ -176,7 +176,7 @@ class TestPolicyFactory:
         assert response.status_code == 200
         assert response_body["bag"] == {"test": "test"}
         assert response_body["access_restrictions"]["filters"] == {
-            "relations.hasTenant": "/"
+            "relations.hasTenant": ""
         }
 
         response = requests.put(self.ENDPOINT, headers=headers)
