@@ -157,7 +157,7 @@ class TestPolicyFactory:
         response_body = response.json()
         assert response.status_code == 200
         assert response_body["bag"] == {}
-        assert response_body["access_restrictions"]["filters"] == None
+        assert response_body["access_restrictions"]["filters"] is None
 
         response = requests.get(self.ENDPOINT, headers=headers)
         response_body = response.json()
@@ -183,7 +183,7 @@ class TestPolicyFactory:
         response_body = response.json()
         assert response.status_code == 200
         assert response_body["bag"] == {}
-        assert response_body["access_restrictions"]["filters"] == None
+        assert response_body["access_restrictions"]["filters"] is None
 
     @classmethod
     def teardown_class(cls):

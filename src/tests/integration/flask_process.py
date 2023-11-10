@@ -21,7 +21,7 @@ def start():
 
 
 def assert_running():
-    if _flask_process.poll() != None:
+    if _flask_process.poll() is not None:
         pytest.fail("flask_process is not running.")
 
 
@@ -35,7 +35,7 @@ def stop():
     _overwrite_configuration_file()
     _flask_process.kill()
     sleep(_sleep_delay)
-    assert _flask_process.poll() != None
+    assert _flask_process.poll() is not None
 
 
 def _overwrite_configuration_file(

@@ -25,4 +25,4 @@ class TestOpenDataPolicy:
         policy_context = self.open_data_policy.authorize(
             self.policy_context, self.user_context, self.request_context
         )
-        assert policy_context.access_verdict == None
+        assert policy_context.access_verdict is None

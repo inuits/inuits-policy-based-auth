@@ -41,7 +41,7 @@ class TestBaseAuthorizationPolicy:
         )
 
         self.policy.authorize.assert_called_once()
-        assert policy_context.access_verdict == None
+        assert policy_context.access_verdict is None
 
     def test_apply_raises_AuthorizeMethodDidNotReturnObjectOfTypePolicyContextException(
         self,

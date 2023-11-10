@@ -206,7 +206,7 @@ class PolicyFactory:
         The first allowing policy will stop execution and allow access.
         The first denying policy will stop execution and deny access.
         If all policies are applied and none of them allowed or denied access
-        (policy_context.access_verdict == None), then access is denied.
+        (policy_context.access_verdict is None), then access is denied.
 
         Parameters
         ----------
