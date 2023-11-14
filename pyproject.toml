@@ -22,6 +22,7 @@ classifiers = [
 ]
 keywords = ["inuits", "policy", "auth"]
 dependencies = [
+    "Authlib>=1.2.1",
     "requests>=2.31",
     "Werkzeug>=2",
 ]
