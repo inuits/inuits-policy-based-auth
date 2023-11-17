@@ -10,10 +10,13 @@ class AccessRestrictions:
     ----------
     filters : Unknown
         Object used to filter on attributes of documents.
+    post_request_hook : Unknown
+        Function used to manipulate response data of a request.
     """
 
     def __init__(self):
         self._filters = None
+        self._post_request_hook = None
 
     @property
     def filters(self):
@@ -24,3 +27,13 @@ class AccessRestrictions:
     @filters.setter
     def filters(self, filters):
         self._filters = filters
+
+    @property
+    def post_request_hook(self):
+        """Function used to manipulate response data of a request."""
+
+        return self._post_request_hook
+
+    @post_request_hook.setter
+    def post_request_hook(self, post_request_hook):
+        self._post_request_hook = post_request_hook
