@@ -10,13 +10,13 @@ class AccessRestrictions:
     ----------
     filters : Unknown
         Object used to filter on attributes of documents.
-    post_request_hook : Unknown
+    post_request_hook : (response: Unknown) -> Unknown
         Function used to manipulate response data of a request.
     """
 
     def __init__(self):
         self._filters = None
-        self._post_request_hook = None
+        self._post_request_hook = lambda response: response
 
     @property
     def filters(self):
