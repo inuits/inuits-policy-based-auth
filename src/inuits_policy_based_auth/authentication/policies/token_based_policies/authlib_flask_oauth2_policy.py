@@ -222,9 +222,7 @@ class JWTValidator(BearerTokenValidator, ABC):
         try:
             issuer = self.__get_issuer_from_token_string(token_string)
             if not self.allowed_issuers:
-                self.logger.warning(
-                    "No allowed issuers configured, allowing all issuers!"
-                )
+                raise Exception(f"No allowed issuers configured")
             elif issuer not in self.allowed_issuers:
                 raise Exception(f"Issuer {issuer} not allowed")
             jwks = self.__get_jwks(issuer)
