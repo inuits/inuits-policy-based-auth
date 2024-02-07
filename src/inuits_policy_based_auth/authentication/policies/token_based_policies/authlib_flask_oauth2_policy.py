@@ -93,9 +93,12 @@ class AuthlibFlaskOauth2Policy(BaseAuthenticationPolicy):
             user_context.auth_objects.add_key_value_pair("token", token)
             flattened_token = user_context.flatten_auth_object(token)
 
-            user_context.id = flattened_token.get(self._token_schema["id"], "")
+            user_context.id = flattened_token[self._token_schema["id"]]
             user_context.email = flattened_token.get(
-                self._token_schema["email"], ""
+                self._token_schema.get("email", ""), ""
+            ).lower()
+            user_context.preferred_username = flattened_token.get(
+                self._token_schema.get("preferred_username", ""), ""
             ).lower()
             return user_context
         except InvalidTokenError as error:

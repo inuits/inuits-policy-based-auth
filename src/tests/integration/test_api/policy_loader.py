@@ -75,16 +75,18 @@ def __instantiate_authentication_policy(policy_module_name, policy, logger: Logg
             token_schema,
             os.getenv("STATIC_ISSUER"),
             os.getenv("STATIC_PUBLIC_KEY"),
-            None,
+            os.getenv("ALLOWED_ISSUERS"),
             allow_anonymous_users,
         )
     if policy_module_name == "token_based_policies.tenant_token_roles_policy":
         return policy(
             token_schema,
             os.getenv("ROLE_SCOPE_MAPPING", os.getenv("TEST_API_SCOPES")),
-            True
-            if os.getenv("ALLOW_ANONYMOUS_USERS", "false").lower() == "true"
-            else False,
+            (
+                True
+                if os.getenv("ALLOW_ANONYMOUS_USERS", "false").lower() == "true"
+                else False
+            ),
         )
 
     return policy()

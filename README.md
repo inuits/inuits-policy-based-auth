@@ -144,7 +144,7 @@ def __instantiate_authentication_policy(policy_module_name, policy, logger: Logg
             token_schema,
             os.getenv("STATIC_ISSUER"),
             os.getenv("STATIC_PUBLIC_KEY"),
-            None,
+            os.getenv("ALLOWED_ISSUERS"),
             allow_anonymous_users,
         )
     if policy_module_name == "token_based_policies.tenant_token_roles_policy":

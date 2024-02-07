@@ -17,6 +17,8 @@ class UserContext:
         The id of the authenticated user.
     email : str
         The email of the authenticated user.
+    preferred_username : str
+        The preferred_username of the authenticated user.
     x_tenant : Tenant
         The user tenant that is requested from the X-Tenant-Id http header.
     tenants : list[Tenant]
@@ -38,6 +40,7 @@ class UserContext:
         self._auth_objects = ImmutableDict({})
         self._id = ""
         self._email = ""
+        self._preferred_username = ""
         self._x_tenant = Tenant()
         self._tenants: list[Tenant] = []
         self._bag = {}
@@ -71,6 +74,16 @@ class UserContext:
     @email.setter
     def email(self, email: str):
         self._email = email
+
+    @property
+    def preferred_username(self):
+        """The preferred_username of the authenticated user."""
+
+        return self._preferred_username
+
+    @preferred_username.setter
+    def preferred_username(self, preferred_username: str):
+        self._preferred_username = preferred_username
 
     @property
     def x_tenant(self):
