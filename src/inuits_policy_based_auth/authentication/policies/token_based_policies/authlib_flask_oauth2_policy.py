@@ -101,7 +101,7 @@ class AuthlibFlaskOauth2Policy(BaseAuthenticationPolicy):
                 self._token_schema.get("preferred_username", ""), ""
             ).lower()
             return user_context
-        except InvalidTokenError as error:
+        except (InvalidTokenError, ValidatorException) as error:
             raise Unauthorized(str(error))
         except OAuth2Error as error:
             if self._allow_anonymous_users:
@@ -222,22 +222,18 @@ class JWTValidator(BearerTokenValidator, ABC):
             If authentication is successful, returns a JWTBearerToken object containing
             the decoded JWT claims. If authentication fails, None is returned.
         """
-        try:
-            issuer = self.__get_issuer_from_token_string(token_string)
-            if not self.allowed_issuers:
-                raise Exception(f"No allowed issuers configured")
-            elif issuer not in self.allowed_issuers:
-                raise Exception(f"Issuer {issuer} not allowed")
+        issuer = self.__get_issuer_from_token_string(token_string)
+        if not self.allowed_issuers:
+            raise ValidatorException(f"No allowed issuers configured")
+        elif issuer not in self.allowed_issuers:
+            raise ValidatorException(f"Issuer {issuer} not allowed")
+        jwks = self.__get_jwks(issuer)
+        token = self.__decode_token(token_string, jwks)
+        if not token:
+            self.jwks_cache[issuer] = None
             jwks = self.__get_jwks(issuer)
             token = self.__decode_token(token_string, jwks)
-            if not token:
-                self.jwks_cache[issuer] = None
-                jwks = self.__get_jwks(issuer)
-                token = self.__decode_token(token_string, jwks)
-            return token
-        except Exception as ex:
-            self.logger.error(f"Could not get decoded & validated token: {ex}")
-            return None
+        return token
 
     @staticmethod
     def __get_issuer_from_token_string(token_string):
@@ -250,11 +246,16 @@ class JWTValidator(BearerTokenValidator, ABC):
     def __get_jwks_from_issuer(issuer):
         req = requests.get(f"{issuer}/.well-known/openid-configuration")
         if req.status_code != 200:
-            raise Exception(
+            raise ValidatorException(
                 f"Failed to get issuer's OpenID configuration: {req.text.strip()}"
             )
         jwks_url = req.json()["jwks_uri"]
         req = requests.get(jwks_url)
         if req.status_code != 200:
-            raise Exception(f"Failed to get issuer's JWKS: {req.text.strip()}")
+            raise ValidatorException(f"Failed to get issuer's JWKS: {req.text.strip()}")
         return req.json()["keys"]
+
+
+class ValidatorException(Exception):
+    def __init__(self, message):
+        super().__init__(message)

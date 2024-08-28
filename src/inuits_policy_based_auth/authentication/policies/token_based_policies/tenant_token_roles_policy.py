@@ -57,23 +57,24 @@ class TenantTokenRolesPolicy(BaseAuthenticationPolicy):
 
         try:
             token = user_context.auth_objects["token"]
-            flattened_token = user_context.flatten_auth_object(token)
-            user_context.x_tenant.roles = flattened_token.get(
-                self._token_schema["roles"], []
-            )
-            if not self._role_scope_mapping:
-                return user_context
-            for role in user_context.x_tenant.roles:
-                try:
-                    user_context.x_tenant.scopes.extend(self._role_scope_mapping[role])
-                except KeyError:
-                    continue
-            return user_context
         except Exception:
             if self._allow_anonymous_users:
                 return user_context
             else:
-                raise Unauthorized()
+                raise Unauthorized("No token")
+
+        flattened_token = user_context.flatten_auth_object(token)
+        user_context.x_tenant.roles = flattened_token.get(
+            self._token_schema["roles"], []
+        )
+        if not self._role_scope_mapping:
+            return user_context
+        for role in user_context.x_tenant.roles:
+            try:
+                user_context.x_tenant.scopes.extend(self._role_scope_mapping[role])
+            except KeyError:
+                continue
+        return user_context
 
     def __load_role_scope_mapping(self, file):
         try:
