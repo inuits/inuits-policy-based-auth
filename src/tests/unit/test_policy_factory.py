@@ -19,22 +19,11 @@ from werkzeug.exceptions import Forbidden
 
 class TestPolicyFactory:
     def setup_method(self):
-        self.policy_factory = PolicyFactory()
+        self.policy_factory = PolicyFactory(lambda _: _)
         self.policy_context = PolicyContext()
         self.request_context = RequestContext(None)
         self.user_context = UserContext()
         self.key = "tests.unit"
-
-    def test_get_user_context_does_not_raise_error_if_user_context_is_present(self):
-        self.policy_factory._user_context = self.user_context
-        user_context = self.policy_factory.get_user_context()
-        assert user_context is self.policy_factory._user_context
-
-    def test_get_user_context_raises_NoUserContextException_if_user_context_is_none(
-        self,
-    ):
-        with pytest.raises(NoUserContextException):
-            self.policy_factory.get_user_context()
 
     def test_register_authentication_policy_appends_policy_to_authentication_policies(
         self,
@@ -138,7 +127,9 @@ class TestPolicyFactory:
         spy_decorated_function = Mock()
         spy_policy_factory_authenticate = Mock()
         spy_policy_factory_authorize = Mock()
+        dummy_user_context = Mock()
 
+        spy_policy_factory_authenticate.return_value = dummy_user_context
         self.policy_factory._authenticate = spy_policy_factory_authenticate
         self.policy_factory._authorize = spy_policy_factory_authorize
 
@@ -152,7 +143,7 @@ class TestPolicyFactory:
             spy_decorated_function, self.request_context
         )
         spy_policy_factory_authorize.assert_called_once_with(
-            spy_decorated_function, self.request_context
+            spy_decorated_function, dummy_user_context, self.request_context
         )
 
     @patch(
@@ -193,61 +184,58 @@ class TestPolicyFactory:
         self._prepare_test_authorize()
 
         with pytest.raises(NoUserContextException):
-            self.policy_factory._authorize(Mock(), Mock())
+            self.policy_factory._authorize(Mock(), None, Mock())
 
     def test_authorize_allows_access_and_stops_execution_if_policy_context_access_verdict_is_true(
         self,
     ):
-        with patch.object(self.policy_factory, "_user_context", UserContext()):
-            self._prepare_test_authorize()
-            self.policy_context.access_verdict = True
+        self._prepare_test_authorize()
+        self.policy_context.access_verdict = True
 
-            self.policy_factory._authorize(
-                self.dummy_decorated_function, self.request_context
-            )
+        self.policy_factory._authorize(
+            self.dummy_decorated_function, UserContext(), self.request_context
+        )
 
-            self.spy_policy_factory_get_key_for_policy_mapping.assert_called_once_with(
-                self.policy_factory._authorization_policies,
-                self.dummy_decorated_function,
-            )
-            self.spy_policy_1_apply.assert_called_once()
-            self.spy_policy_2_apply.assert_not_called()
+        self.spy_policy_factory_get_key_for_policy_mapping.assert_called_once_with(
+            self.policy_factory._authorization_policies,
+            self.dummy_decorated_function,
+        )
+        self.spy_policy_1_apply.assert_called_once()
+        self.spy_policy_2_apply.assert_not_called()
 
     def test_authorize_denies_access_and_stops_execution_if_policy_context_access_verdict_is_false(
         self,
     ):
-        with patch.object(self.policy_factory, "_user_context", UserContext()):
-            self._prepare_test_authorize()
-            self.policy_context.access_verdict = False
+        self._prepare_test_authorize()
+        self.policy_context.access_verdict = False
 
-            with pytest.raises(Forbidden):
-                self.policy_factory._authorize(
-                    self.dummy_decorated_function, self.request_context
-                )
-
-            self.spy_policy_factory_get_key_for_policy_mapping.assert_called_once_with(
-                self.policy_factory._authorization_policies,
-                self.dummy_decorated_function,
+        with pytest.raises(Forbidden):
+            self.policy_factory._authorize(
+                self.dummy_decorated_function, UserContext(), self.request_context
             )
-            self.spy_policy_1_apply.assert_called_once()
-            self.spy_policy_2_apply.assert_not_called()
+
+        self.spy_policy_factory_get_key_for_policy_mapping.assert_called_once_with(
+            self.policy_factory._authorization_policies,
+            self.dummy_decorated_function,
+        )
+        self.spy_policy_1_apply.assert_called_once()
+        self.spy_policy_2_apply.assert_not_called()
 
     def test_authorize_denies_access_if_policy_context_access_verdict_is_none(self):
-        with patch.object(self.policy_factory, "_user_context", UserContext()):
-            self._prepare_test_authorize()
-            self.policy_context.access_verdict = None
+        self._prepare_test_authorize()
+        self.policy_context.access_verdict = None
 
-            with pytest.raises(Forbidden):
-                self.policy_factory._authorize(
-                    self.dummy_decorated_function, self.request_context
-                )
-
-            self.spy_policy_factory_get_key_for_policy_mapping.assert_called_once_with(
-                self.policy_factory._authorization_policies,
-                self.dummy_decorated_function,
+        with pytest.raises(Forbidden):
+            self.policy_factory._authorize(
+                self.dummy_decorated_function, UserContext(), self.request_context
             )
-            self.spy_policy_1_apply.assert_called_once()
-            self.spy_policy_2_apply.assert_called_once()
+
+        self.spy_policy_factory_get_key_for_policy_mapping.assert_called_once_with(
+            self.policy_factory._authorization_policies,
+            self.dummy_decorated_function,
+        )
+        self.spy_policy_1_apply.assert_called_once()
+        self.spy_policy_2_apply.assert_called_once()
 
     def test_get_key_for_policy_mapping_gets_key(self):
         stub_decorated_function = Mock()

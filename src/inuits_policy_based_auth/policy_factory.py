@@ -25,11 +25,17 @@ class PolicyFactory:
     """
     A class used to apply policies.
 
+    Parameters
+    ----------
+    user_context_setter_for_request_lifecycle : function
+        A function provided by the API responsible for managing the user context
+        throughout the HTTP request lifecycle. This responsibility is delegated to
+        the API, rather than the library, to allow framework-specific implementations
+        to handle more complex scenarios, such as those in multiprocess and
+        multithreaded environments.
+
     Methods
     -------
-    get_user_context()
-        Returns an object of type UserContext.
-
     register_authentication_policy(key, policy)
         Appends a policy to the list of authentication policies to be applied
         mapped to a key.
@@ -46,31 +52,13 @@ class PolicyFactory:
         of the module name of endpoints decorated by the policy factory.
     """
 
-    def __init__(self):
-        self._user_context = None
+    def __init__(self, user_context_setter_for_request_lifecycle):
         self._authentication_policies: dict[str, list[BaseAuthenticationPolicy]] = {}
         self._authorization_policies: dict[str, list[BaseAuthorizationPolicy]] = {}
         self._fallback_key_for_policy_mapping = ""
-        self._previous_request_context_hash: int | None = None
-
-    def get_user_context(self) -> UserContext:
-        """
-        Returns an object of type UserContext.
-
-        Returns
-        -------
-        UserContext
-            An object containing data about the authenticated user.
-
-        Raises
-        ------
-        NoUserContextException
-            If there is no user auth data yet.
-        """
-
-        if not self._user_context:
-            raise NoUserContextException()
-        return self._user_context
+        self._user_context_setter_for_request_lifecycle = (
+            user_context_setter_for_request_lifecycle
+        )
 
     def register_authentication_policy(
         self, key: str, policy: BaseAuthenticationPolicy
@@ -170,29 +158,32 @@ class PolicyFactory:
                 if len(self._authentication_policies) <= 0:
                     raise NoAuthenticationPoliciesToApplyException()
 
-                if hash(request_context) != self._previous_request_context_hash:
-                    if self.__is_test_environment(decorated_function):
-                        import traceback
-                        from flask import make_response
+                if self.__is_test_environment(decorated_function):
+                    import traceback
+                    from flask import make_response
 
-                        try:
-                            self.__log_decorator("authenticate")
-                            self._authenticate(decorated_function, request_context)
-                        except Unauthorized as error:
-                            self.__clear_logs()
-                            raise error
-                        except (TypeError, PolicyFactoryException) as error:
-                            return make_response(
-                                {
-                                    "message": str(error),
-                                    "stacktrace": traceback.format_exc(),
-                                },
-                                500,
-                            )
-                    else:
-                        self._authenticate(decorated_function, request_context)
+                    try:
+                        self.__log_decorator("authenticate")
+                        user_context = self._authenticate(
+                            decorated_function, request_context
+                        )
+                    except Unauthorized as error:
+                        self.__clear_logs()
+                        raise error
+                    except (TypeError, PolicyFactoryException) as error:
+                        return make_response(
+                            {
+                                "message": str(error),
+                                "stacktrace": traceback.format_exc(),
+                            },
+                            500,
+                        )
+                else:
+                    user_context = self._authenticate(
+                        decorated_function, request_context
+                    )
 
-                self._previous_request_context_hash = hash(request_context)
+                self._user_context_setter_for_request_lifecycle(user_context)
                 return decorated_function(*args, **kwargs)
 
             return decorated_function_wrapper
@@ -243,7 +234,7 @@ class PolicyFactory:
 
                     try:
                         self.__log_decorator("apply_policies")
-                        self._apply_policies_decorated_function_wrapper_implementation(
+                        user_context = self._apply_policies_decorated_function_wrapper_implementation(
                             decorated_function, request_context
                         )
                     except (Unauthorized, Forbidden) as error:
@@ -258,11 +249,13 @@ class PolicyFactory:
                             500,
                         )
                 else:
-                    self._apply_policies_decorated_function_wrapper_implementation(
-                        decorated_function, request_context
+                    user_context = (
+                        self._apply_policies_decorated_function_wrapper_implementation(
+                            decorated_function, request_context
+                        )
                     )
 
-                self._previous_request_context_hash = hash(request_context)
+                self._user_context_setter_for_request_lifecycle(user_context)
                 return decorated_function(*args, **kwargs)
 
             return decorated_function_wrapper
@@ -277,8 +270,11 @@ class PolicyFactory:
         if len(self._authorization_policies) <= 0:
             raise NoAuthorizationPoliciesToApplyException()
 
-        self._authenticate(decorated_function, request_context)
-        self._authorize(decorated_function, request_context)
+        user_context = self._authenticate(decorated_function, request_context)
+        user_context = self._authorize(
+            decorated_function, user_context, request_context
+        )
+        return user_context
 
     def _authenticate(self, decorated_function, request_context: RequestContext):
         user_context = UserContext()
@@ -288,10 +284,14 @@ class PolicyFactory:
         )
         for policy in self._authentication_policies[key]:
             user_context = policy.apply(user_context, request_context)
-            self._user_context = user_context
+            self._user_context_setter_for_request_lifecycle(user_context)
 
-    def _authorize(self, decorated_function, request_context: RequestContext):
-        if not self._user_context:
+        return user_context
+
+    def _authorize(
+        self, decorated_function, user_context, request_context: RequestContext
+    ):
+        if not user_context:
             raise NoUserContextException()
 
         policy_context = PolicyContext()
@@ -300,12 +300,10 @@ class PolicyFactory:
             self._authorization_policies, decorated_function
         )
         for policy in self._authorization_policies[key]:
-            policy_context = policy.apply(
-                policy_context, self._user_context, request_context
-            )
+            policy_context = policy.apply(policy_context, user_context, request_context)
 
             if policy_context.access_verdict:
-                return
+                return user_context
             elif policy_context.access_verdict is False:
                 break
 
