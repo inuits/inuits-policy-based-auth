@@ -13,7 +13,6 @@ from flask_restful import Api, Resource, request
 from inuits_policy_based_auth import RequestContext
 from logging import Logger
 
-
 app = Flask(__name__)
 api = Api(app)
 

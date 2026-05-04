@@ -4,14 +4,17 @@ import requests
 
 from abc import ABC
 from authlib.integrations.flask_oauth2 import ResourceProtector
-from authlib.jose import jwt
 from authlib.oauth2 import OAuth2Error
 from authlib.oauth2.rfc6750 import BearerTokenValidator, InvalidTokenError
-from authlib.oauth2.rfc7523 import JWTBearerToken
 from inuits_policy_based_auth.authentication.base_authentication_policy import (
     BaseAuthenticationPolicy,
 )
+from joserfc import jwt
+from joserfc.errors import ClaimError, DecodeError
+from joserfc.jwk import RSAKey
+from joserfc.jwt import JWTClaimsRegistry
 from logging import Logger
+from time import time
 from werkzeug.exceptions import Unauthorized
 
 
@@ -90,8 +93,8 @@ class AuthlibFlaskOauth2Policy(BaseAuthenticationPolicy):
 
         try:
             token = self._resource_protector.acquire_token()
-            user_context.auth_objects.add_key_value_pair("token", token)
-            flattened_token = user_context.flatten_auth_object(token)
+            user_context.auth_objects.add_key_value_pair("token", token.claims)
+            flattened_token = user_context.flatten_auth_object(token.claims)
 
             user_context.id = flattened_token[self._token_schema["id"]]
             user_context.email = flattened_token.get(
@@ -108,6 +111,41 @@ class AuthlibFlaskOauth2Policy(BaseAuthenticationPolicy):
                 return user_context
             else:
                 raise Unauthorized(str(error))
+
+
+class JWTTokenWrapper:
+    def __init__(self, token):
+        self.claims = token.claims
+        self.header = token.header
+        self._data = token.claims
+
+    def is_expired(self):
+        exp = self.claims.get("exp")
+        return exp and time() > exp
+
+    def is_revoked(self):
+        return False
+
+    def get_client_id(self):
+        return self.claims.get("azp")
+
+    def get_scope(self):
+        return self.claims.get("scope", "")
+
+    def items(self):
+        return self._data.items()
+
+    def get(self, key, default=None):
+        return self._data.get(key, default)
+
+    def __getitem__(self, key):
+        return self._data[key]
+
+    def __contains__(self, key):
+        return key in self._data
+
+    def __iter__(self):
+        return iter(self._data)
 
 
 class JWTValidator(BearerTokenValidator, ABC):
@@ -139,12 +177,6 @@ class JWTValidator(BearerTokenValidator, ABC):
     TOKEN_TYPE : str
         A string representing the token type that this validator is responsible for.
         Always "bearer".
-    token_cls : type
-        A class representing the type of token that this validator is responsible for.
-        Always JWTBearerToken.
-    claims_options : dict
-        A dictionary representing the claims options to be used for validating the JWT.
-        By default, this dictionary contains options for the "exp", "azp", and "sub" claims.
 
     Methods:
     --------
@@ -162,7 +194,6 @@ class JWTValidator(BearerTokenValidator, ABC):
     """
 
     TOKEN_TYPE = "bearer"
-    token_cls = JWTBearerToken
 
     def __init__(
         self,
@@ -177,24 +208,19 @@ class JWTValidator(BearerTokenValidator, ABC):
         self.static_issuer = static_issuer
         self.static_public_key = static_public_key
         self.allowed_issuers = allowed_issuers
-        self.claims_options = {
-            "exp": {"essential": True},
-            "azp": {"essential": True},
-            "sub": {"essential": True},
-        }
         self.jwks_cache = {}
 
     def __decode_token(self, token_string, jwks):
         try:
-            claims = jwt.decode(
-                token_string,
-                jwks,
-                claims_options=self.claims_options,
-                claims_cls=self.token_cls,
+            claims_requests = JWTClaimsRegistry(
+                exp={"essential": True},
+                azp={"essential": True},
+                sub={"essential": True},
             )
-            claims.validate()
-            return claims
-        except:
+            token = jwt.decode(token_string, RSAKey.import_key(jwks))
+            claims_requests.validate(token.claims)
+            return JWTTokenWrapper(token)
+        except (ClaimError, DecodeError):
             return None
 
     def __get_jwks(self, issuer):

@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "inuits_policy_based_auth"
-version = "10.0.1"
+version = "10.1.0"
 description = "Module for securing API endpoints based on policies."
 readme = "README.md"
 authors = [{ name = "Inuits", email = "developers@inuits.eu" }]
@@ -23,6 +23,7 @@ classifiers = [
 keywords = ["inuits", "policy", "auth"]
 dependencies = [
     "Authlib>=1.2.1",
+    "joserfc>=0.9.0",
     "requests>=2.31",
     "Werkzeug>=2",
 ]

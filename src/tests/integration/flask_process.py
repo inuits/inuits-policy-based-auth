@@ -5,7 +5,6 @@ import pytest
 from subprocess import Popen, DEVNULL
 from time import sleep
 
-
 _flask_process: Popen[bytes]
 _sleep_delay = 1
 
@@ -16,7 +15,9 @@ def set_app_policies(authentication: list[str], authorization: list[str]):
 
 def start():
     global _flask_process
-    _flask_process = Popen(["flask", "run"], stdout=DEVNULL, stderr=DEVNULL)
+    _flask_process = Popen(
+        ["flask", "run", "--debug", "--no-reload"], stdout=DEVNULL, stderr=DEVNULL
+    )
     sleep(_sleep_delay)
 
 

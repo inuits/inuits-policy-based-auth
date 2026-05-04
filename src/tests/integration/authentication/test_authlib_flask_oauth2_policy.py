@@ -4,7 +4,6 @@ import requests
 from .. import flask_process, custom_token
 from dotenv import load_dotenv
 
-
 load_dotenv()
 
 
