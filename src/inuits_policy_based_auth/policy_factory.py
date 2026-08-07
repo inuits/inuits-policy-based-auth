@@ -291,6 +291,8 @@ class PolicyFactory:
     def _authorize(
         self, decorated_function, user_context, request_context: RequestContext
     ):
+        from flask import g
+
         if not user_context:
             raise NoUserContextException()
 
@@ -307,6 +309,8 @@ class PolicyFactory:
             elif policy_context.access_verdict is False:
                 break
 
+        if description := g.get("permission_error_message"):
+            raise Forbidden(description=description)
         raise Forbidden()
 
     def _get_key_for_policy_mapping(self, policy_dict: dict, decorated_function) -> str:
