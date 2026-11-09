@@ -408,6 +408,100 @@ class TestPolicyFactory:
                 policy_dict, stub_decorated_function
             )
 
+    def test_authenticate_decorator_skips_authentication_if_user_context_getter_returns_user_context(
+        self,
+    ):
+        def endpoint():
+            return "ok"
+
+        spy_authenticate, spy_setter = self._prepare_test_authenticate_decorator()
+        spy_user_context_getter = Mock(return_value=self.user_context)
+
+        decorated_endpoint = self.policy_factory.authenticate(
+            self.request_context, user_context_getter=spy_user_context_getter
+        )(endpoint)
+
+        assert decorated_endpoint() == "ok"
+        spy_user_context_getter.assert_called_once_with()
+        spy_authenticate.assert_not_called()
+        spy_setter.assert_not_called()
+
+    def test_authenticate_decorator_authenticates_if_user_context_getter_returns_none(
+        self,
+    ):
+        def endpoint():
+            return "ok"
+
+        spy_authenticate, spy_setter = self._prepare_test_authenticate_decorator()
+        spy_authenticate.return_value = self.user_context
+        spy_user_context_getter = Mock(return_value=None)
+
+        decorated_endpoint = self.policy_factory.authenticate(
+            self.request_context, user_context_getter=spy_user_context_getter
+        )(endpoint)
+
+        assert decorated_endpoint() == "ok"
+        spy_authenticate.assert_called_once_with(endpoint, self.request_context)
+        spy_setter.assert_called_once_with(self.user_context)
+
+    def test_authenticate_decorator_authenticates_without_user_context_getter(self):
+        def endpoint():
+            return "ok"
+
+        spy_authenticate, spy_setter = self._prepare_test_authenticate_decorator()
+        spy_authenticate.return_value = self.user_context
+
+        decorated_endpoint = self.policy_factory.authenticate(self.request_context)(
+            endpoint
+        )
+
+        assert decorated_endpoint() == "ok"
+        spy_authenticate.assert_called_once_with(endpoint, self.request_context)
+        spy_setter.assert_called_once_with(self.user_context)
+
+    def test_authenticate_decorator_calls_user_context_getter_per_invocation(self):
+        def endpoint():
+            return "ok"
+
+        spy_authenticate, _ = self._prepare_test_authenticate_decorator()
+        spy_authenticate.return_value = self.user_context
+        spy_user_context_getter = Mock(side_effect=[None, self.user_context])
+
+        decorated_endpoint = self.policy_factory.authenticate(
+            self.request_context, user_context_getter=spy_user_context_getter
+        )(endpoint)
+        spy_user_context_getter.assert_not_called()
+
+        decorated_endpoint()
+        decorated_endpoint()
+
+        assert spy_user_context_getter.call_count == 2
+        spy_authenticate.assert_called_once_with(endpoint, self.request_context)
+
+    def test_authenticate_decorator_raises_NoAuthenticationPoliciesToApplyException_if_user_context_getter_returns_user_context_and_no_authentication_policies_are_registered(
+        self,
+    ):
+        def endpoint():
+            return "ok"
+
+        decorated_endpoint = self.policy_factory.authenticate(
+            self.request_context,
+            user_context_getter=Mock(return_value=self.user_context),
+        )(endpoint)
+
+        with pytest.raises(NoAuthenticationPoliciesToApplyException):
+            decorated_endpoint()
+
+    def _prepare_test_authenticate_decorator(self):
+        spy_authenticate = Mock()
+        spy_setter = Mock()
+
+        self.policy_factory._authentication_policies.update({self.key: [Mock()]})
+        self.policy_factory._authenticate = spy_authenticate
+        self.policy_factory._user_context_setter_for_request_lifecycle = spy_setter
+
+        return spy_authenticate, spy_setter
+
     def _prepare_test_apply_policies_decorator(self):
         spy_implementation = Mock()
         spy_setter = Mock()

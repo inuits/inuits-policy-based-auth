@@ -269,6 +269,17 @@ class Entity():
         ...
 ```
 
+The ```authenticate``` decorator accepts the same ```user_context_getter``` argument. This is useful when an endpoint decorated with ```authenticate``` is called from another endpoint that has already authenticated the user within the same request. If the getter returns a user context, the authentication policies are skipped and the endpoint is executed with that user context.
+```python
+class Entity():
+    @policy_factory.authenticate(
+        RequestContext(request),
+        user_context_getter=get_user_context,
+    )
+    def patch(self):
+        ...
+```
+
 **Warning:** the getter is called on every request, not when the endpoint is defined. Only use it if the user context comes from a trusted earlier step within the same request, such as the ```authenticate``` decorator. Never return a static or shared user context, as this would skip authentication for every request.
 
 ## Contributing

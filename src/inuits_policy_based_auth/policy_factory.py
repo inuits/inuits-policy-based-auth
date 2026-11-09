@@ -45,7 +45,7 @@ class PolicyFactory:
         Appends a policy to the list of authorization policies to be applied
         mapped to a key.
 
-    authenticate(request_context)
+    authenticate(request_context, user_context_getter=None)
         Applies registered authentication policies to determine access.
 
     apply_policies(request_context, user_context_getter=None)
@@ -132,7 +132,11 @@ class PolicyFactory:
         else:
             raise InvalidFallbackKey(key)
 
-    def authenticate(self, request_context: RequestContext):
+    def authenticate(
+        self,
+        request_context: RequestContext,
+        user_context_getter: Optional[Callable[[], Optional[UserContext]]] = None,
+    ):
         """
         Applies registered authentication policies to determine access.
 
@@ -140,6 +144,19 @@ class PolicyFactory:
         ----------
         request_context : RequestContext
             An object containing data about the context of a request.
+        user_context_getter : callable, optional
+            A function without arguments that returns the user context of the
+            current request, or None. It is called once per request, every time
+            the decorated endpoint is called, never when the endpoint is defined.
+            If it returns a user context, authentication policies are skipped and
+            the endpoint is executed with that user context. If it returns None
+            (or if no getter is provided), authentication policies are applied.
+
+            Warning: only use this if the user context comes from a trusted
+            earlier step within the same request, for example an outer
+            ``authenticate`` or ``apply_policies`` decorator. Never return a
+            static or shared user context, as this would skip authentication for
+            every request.
 
         Returns
         -------
@@ -161,6 +178,12 @@ class PolicyFactory:
             def decorated_function_wrapper(*args, **kwargs):
                 if len(self._authentication_policies) <= 0:
                     raise NoAuthenticationPoliciesToApplyException()
+
+                user_context = user_context_getter() if user_context_getter else None
+                if user_context is not None:
+                    if self.__is_test_environment(decorated_function):
+                        self.__log_decorator("authenticate")
+                    return decorated_function(*args, **kwargs)
 
                 if self.__is_test_environment(decorated_function):
                     import traceback
