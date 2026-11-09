@@ -2,9 +2,9 @@ from flask import g
 from inuits_policy_based_auth import PolicyFactory, RequestContext
 
 
-def apply_policies(request_context: RequestContext):
+def apply_policies(request_context: RequestContext, user_context_getter=None):
     global _policy_factory
-    return _policy_factory.apply_policies(request_context)
+    return _policy_factory.apply_policies(request_context, user_context_getter)
 
 
 def authenticate(request_context: RequestContext):

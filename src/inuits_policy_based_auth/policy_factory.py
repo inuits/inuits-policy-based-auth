@@ -3,6 +3,7 @@ import os
 import re as regex
 
 from functools import wraps
+from typing import Callable, Optional
 from inuits_policy_based_auth.authentication.base_authentication_policy import (
     BaseAuthenticationPolicy,
 )
@@ -44,7 +45,10 @@ class PolicyFactory:
         Appends a policy to the list of authorization policies to be applied
         mapped to a key.
 
-    apply_policies(request_context)
+    authenticate(request_context)
+        Applies registered authentication policies to determine access.
+
+    apply_policies(request_context, user_context_getter=None)
         Applies registered policies to determine access.
 
     set_fallback_key_for_policy_mapping(key)
@@ -190,7 +194,11 @@ class PolicyFactory:
 
         return decorator
 
-    def apply_policies(self, request_context: RequestContext):
+    def apply_policies(
+        self,
+        request_context: RequestContext,
+        user_context_getter: Optional[Callable[[], Optional[UserContext]]] = None,
+    ):
         """
         Applies registered policies to determine access.
 
@@ -203,6 +211,19 @@ class PolicyFactory:
         ----------
         request_context : RequestContext
             An object containing data about the context of a request.
+        user_context_getter : callable, optional
+            A function without arguments that returns the user context of the
+            current request, or None. It is called once per request, every time
+            the decorated endpoint is called, never when the endpoint is defined.
+            If it returns a user context, authentication policies are skipped and
+            only authorization policies are applied to that user context. If it
+            returns None (or if no getter is provided), authentication policies
+            are applied first.
+
+            Warning: only use this if the user context comes from a trusted
+            earlier step within the same request, for example the
+            ``authenticate`` decorator. Never return a static or shared
+            user context, as this would skip authentication for every request.
 
         Returns
         -------
@@ -228,6 +249,8 @@ class PolicyFactory:
         def decorator(decorated_function):
             @wraps(decorated_function)
             def decorated_function_wrapper(*args, **kwargs):
+                user_context = user_context_getter() if user_context_getter else None
+
                 if self.__is_test_environment(decorated_function):
                     import traceback
                     from flask import make_response
@@ -235,7 +258,9 @@ class PolicyFactory:
                     try:
                         self.__log_decorator("apply_policies")
                         user_context = self._apply_policies_decorated_function_wrapper_implementation(
-                            decorated_function, request_context
+                            decorated_function,
+                            request_context,
+                            user_context,
                         )
                     except (Unauthorized, Forbidden) as error:
                         self.__clear_logs()
@@ -251,7 +276,9 @@ class PolicyFactory:
                 else:
                     user_context = (
                         self._apply_policies_decorated_function_wrapper_implementation(
-                            decorated_function, request_context
+                            decorated_function,
+                            request_context,
+                            user_context,
                         )
                     )
 
@@ -263,17 +290,22 @@ class PolicyFactory:
         return decorator
 
     def _apply_policies_decorated_function_wrapper_implementation(
-        self, decorated_function, request_context: RequestContext
+        self,
+        decorated_function,
+        request_context: RequestContext,
+        user_context: Optional[UserContext] = None,
     ):
         if len(self._authentication_policies) <= 0:
             raise NoAuthenticationPoliciesToApplyException()
         if len(self._authorization_policies) <= 0:
             raise NoAuthorizationPoliciesToApplyException()
 
-        user_context = self._authenticate(decorated_function, request_context)
+        if user_context is None:
+            user_context = self._authenticate(decorated_function, request_context)
         user_context = self._authorize(
             decorated_function, user_context, request_context
         )
+
         return user_context
 
     def _authenticate(self, decorated_function, request_context: RequestContext):

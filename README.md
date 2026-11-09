@@ -8,12 +8,17 @@ pip install inuits-policy-based-auth
 ```
 
 ## Getting Started
-Instantiate the PolicyFactory in you app, for example in app.py (all examples given are based on a Python Flask app).
+Instantiate the PolicyFactory in you app, for example in app.py (all examples given are based on a Python Flask app). The PolicyFactory requires a function that stores the user context for the duration of the request lifecycle. This responsibility is delegated to the API, so framework-specific implementations can handle more complex scenarios, such as multiprocess and multithreaded environments.
 ```python
+from flask import g
 from inuits_policy_based_auth import PolicyFactory
 
 
-policy_factory = PolicyFactory()
+def user_context_setter(user_context):
+    g.user_context = user_context
+
+
+policy_factory = PolicyFactory(user_context_setter)
 ```
 ### Manually loading policies
 Importing and registering policies can be done manually. Don't forget to set a fallback key, this ensures that policies of a specific app are applied when the app cannot be determined automatically.
@@ -239,6 +244,32 @@ class Entity():
     def get(self):
         ...
 ```
+
+### Reusing an already authenticated user context
+By default, ```apply_policies``` applies the authentication policies first and the authorization policies afterwards. If the user is already authenticated earlier in the same request, you can pass a ```user_context_getter``` to ```apply_policies```. It is a function without arguments that returns the user context of the current request. When it returns a user context, the authentication policies are skipped and only the authorization policies are applied. When it returns ```None```, the authentication policies are applied as usual.
+
+Decorators are applied bottom-up, so put ```authenticate``` on the outside. It runs first and sets the user context, which ```apply_policies``` then reads through the getter.
+```python
+from app import policy_factory
+from flask import g, request
+from inuits_policy_based_auth import RequestContext
+
+
+def get_user_context():
+    return g.get("user_context")
+
+
+class Entity():
+    @policy_factory.authenticate(RequestContext(request))
+    @policy_factory.apply_policies(
+        RequestContext(request, ["[scope_1]", "[scope_2]"]),
+        user_context_getter=get_user_context,
+    )
+    def patch(self):
+        ...
+```
+
+**Warning:** the getter is called on every request, not when the endpoint is defined. Only use it if the user context comes from a trusted earlier step within the same request, such as the ```authenticate``` decorator. Never return a static or shared user context, as this would skip authentication for every request.
 
 ## Contributing
 Do not hesitate to open issues and create pull requests.

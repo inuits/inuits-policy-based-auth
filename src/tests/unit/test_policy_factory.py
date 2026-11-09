@@ -1,5 +1,6 @@
 import pytest
 
+from flask import Flask, g
 from inuits_policy_based_auth import (
     PolicyFactory,
     BaseAuthenticationPolicy,
@@ -110,7 +111,7 @@ class TestPolicyFactory:
     ):
         with pytest.raises(NoAuthenticationPoliciesToApplyException):
             self.policy_factory._apply_policies_decorated_function_wrapper_implementation(
-                Mock(), Mock()
+                Mock(), Mock(), None
             )
 
     def test_apply_policies_raises_NoAuthorizationPoliciesToApplyException_if_no_authorization_policies_are_registered(
@@ -120,7 +121,7 @@ class TestPolicyFactory:
 
         with pytest.raises(NoAuthorizationPoliciesToApplyException):
             self.policy_factory._apply_policies_decorated_function_wrapper_implementation(
-                Mock(), Mock()
+                Mock(), Mock(), None
             )
 
     def test_apply_policies_calls_authenticate_and_authorize(self):
@@ -136,7 +137,7 @@ class TestPolicyFactory:
         self.policy_factory._authentication_policies.update({self.key: [Mock()]})
         self.policy_factory._authorization_policies.update({self.key: [Mock()]})
         self.policy_factory._apply_policies_decorated_function_wrapper_implementation(
-            spy_decorated_function, self.request_context
+            spy_decorated_function, self.request_context, None
         )
 
         spy_policy_factory_authenticate.assert_called_once_with(
@@ -145,6 +146,121 @@ class TestPolicyFactory:
         spy_policy_factory_authorize.assert_called_once_with(
             spy_decorated_function, dummy_user_context, self.request_context
         )
+
+    def test_apply_policies_skips_authenticate_if_user_context_is_provided(self):
+        spy_decorated_function = Mock()
+        spy_policy_factory_authenticate = Mock()
+        spy_policy_factory_authorize = Mock()
+
+        spy_policy_factory_authorize.return_value = self.user_context
+        self.policy_factory._authenticate = spy_policy_factory_authenticate
+        self.policy_factory._authorize = spy_policy_factory_authorize
+
+        self.policy_factory._authentication_policies.update({self.key: [Mock()]})
+        self.policy_factory._authorization_policies.update({self.key: [Mock()]})
+        user_context = self.policy_factory._apply_policies_decorated_function_wrapper_implementation(
+            spy_decorated_function, self.request_context, self.user_context
+        )
+
+        spy_policy_factory_authenticate.assert_not_called()
+        spy_policy_factory_authorize.assert_called_once_with(
+            spy_decorated_function, self.user_context, self.request_context
+        )
+        assert user_context is self.user_context
+
+    def test_apply_policies_raises_NoAuthenticationPoliciesToApplyException_if_user_context_is_provided_and_no_authentication_policies_are_registered(
+        self,
+    ):
+        self.policy_factory._authorization_policies.update({self.key: [Mock()]})
+
+        with pytest.raises(NoAuthenticationPoliciesToApplyException):
+            self.policy_factory._apply_policies_decorated_function_wrapper_implementation(
+                Mock(), self.request_context, self.user_context
+            )
+
+    def test_apply_policies_raises_NoAuthorizationPoliciesToApplyException_if_user_context_is_provided_and_no_authorization_policies_are_registered(
+        self,
+    ):
+        self.policy_factory._authentication_policies.update({self.key: [Mock()]})
+
+        with pytest.raises(NoAuthorizationPoliciesToApplyException):
+            self.policy_factory._apply_policies_decorated_function_wrapper_implementation(
+                Mock(), self.request_context, self.user_context
+            )
+
+    def test_apply_policies_decorator_executes_decorated_function_without_user_context_getter(
+        self,
+    ):
+        def endpoint():
+            return "ok"
+
+        spy_implementation, spy_setter = self._prepare_test_apply_policies_decorator()
+        spy_implementation.return_value = self.user_context
+
+        decorated_endpoint = self.policy_factory.apply_policies(self.request_context)(
+            endpoint
+        )
+
+        assert decorated_endpoint() == "ok"
+        spy_implementation.assert_called_once_with(endpoint, self.request_context, None)
+        spy_setter.assert_called_once_with(self.user_context)
+
+    def test_apply_policies_decorator_calls_user_context_getter_per_invocation(self):
+        def endpoint():
+            return "ok"
+
+        user_context_1 = UserContext()
+        user_context_2 = UserContext()
+        spy_user_context_getter = Mock(side_effect=[user_context_1, user_context_2])
+        spy_implementation, spy_setter = self._prepare_test_apply_policies_decorator()
+        spy_implementation.side_effect = lambda _, __, user_context: user_context
+
+        decorated_endpoint = self.policy_factory.apply_policies(
+            self.request_context, user_context_getter=spy_user_context_getter
+        )(endpoint)
+        decorated_endpoint()
+        decorated_endpoint()
+
+        assert spy_user_context_getter.call_count == 2
+        assert spy_implementation.call_args_list == [
+            ((endpoint, self.request_context, user_context_1),),
+            ((endpoint, self.request_context, user_context_2),),
+        ]
+        assert spy_setter.call_args_list == [
+            ((user_context_1,),),
+            ((user_context_2,),),
+        ]
+
+    def test_apply_policies_decorator_does_not_call_user_context_getter_when_decorating(
+        self,
+    ):
+        spy_user_context_getter = Mock()
+        self._prepare_test_apply_policies_decorator()
+
+        self.policy_factory.apply_policies(
+            self.request_context, user_context_getter=spy_user_context_getter
+        )(lambda: "ok")
+
+        spy_user_context_getter.assert_not_called()
+
+    def test_apply_policies_decorator_passes_none_if_user_context_getter_returns_none(
+        self,
+    ):
+        def endpoint():
+            return "ok"
+
+        spy_user_context_getter = Mock(return_value=None)
+        spy_implementation, spy_setter = self._prepare_test_apply_policies_decorator()
+        spy_implementation.return_value = self.user_context
+
+        decorated_endpoint = self.policy_factory.apply_policies(
+            self.request_context, user_context_getter=spy_user_context_getter
+        )(endpoint)
+
+        assert decorated_endpoint() == "ok"
+        spy_user_context_getter.assert_called_once_with()
+        spy_implementation.assert_called_once_with(endpoint, self.request_context, None)
+        spy_setter.assert_called_once_with(self.user_context)
 
     @patch(
         "inuits_policy_based_auth.authentication.base_authentication_policy.BaseAuthenticationPolicy.__abstractmethods__",
@@ -209,10 +325,11 @@ class TestPolicyFactory:
         self._prepare_test_authorize()
         self.policy_context.access_verdict = False
 
-        with pytest.raises(Forbidden):
-            self.policy_factory._authorize(
-                self.dummy_decorated_function, UserContext(), self.request_context
-            )
+        with Flask(__name__).app_context():
+            with pytest.raises(Forbidden):
+                self.policy_factory._authorize(
+                    self.dummy_decorated_function, UserContext(), self.request_context
+                )
 
         self.spy_policy_factory_get_key_for_policy_mapping.assert_called_once_with(
             self.policy_factory._authorization_policies,
@@ -225,10 +342,11 @@ class TestPolicyFactory:
         self._prepare_test_authorize()
         self.policy_context.access_verdict = None
 
-        with pytest.raises(Forbidden):
-            self.policy_factory._authorize(
-                self.dummy_decorated_function, UserContext(), self.request_context
-            )
+        with Flask(__name__).app_context():
+            with pytest.raises(Forbidden):
+                self.policy_factory._authorize(
+                    self.dummy_decorated_function, UserContext(), self.request_context
+                )
 
         self.spy_policy_factory_get_key_for_policy_mapping.assert_called_once_with(
             self.policy_factory._authorization_policies,
@@ -236,6 +354,21 @@ class TestPolicyFactory:
         )
         self.spy_policy_1_apply.assert_called_once()
         self.spy_policy_2_apply.assert_called_once()
+
+    def test_authorize_raises_Forbidden_with_permission_error_message_if_set_in_g(
+        self,
+    ):
+        self._prepare_test_authorize()
+        self.policy_context.access_verdict = False
+
+        with Flask(__name__).app_context():
+            g.permission_error_message = "custom"
+            with pytest.raises(Forbidden) as error:
+                self.policy_factory._authorize(
+                    self.dummy_decorated_function, UserContext(), self.request_context
+                )
+
+        assert error.value.description == "custom"
 
     def test_get_key_for_policy_mapping_gets_key(self):
         stub_decorated_function = Mock()
@@ -274,6 +407,17 @@ class TestPolicyFactory:
             self.policy_factory._get_key_for_policy_mapping(
                 policy_dict, stub_decorated_function
             )
+
+    def _prepare_test_apply_policies_decorator(self):
+        spy_implementation = Mock()
+        spy_setter = Mock()
+
+        self.policy_factory._apply_policies_decorated_function_wrapper_implementation = (
+            spy_implementation
+        )
+        self.policy_factory._user_context_setter_for_request_lifecycle = spy_setter
+
+        return spy_implementation, spy_setter
 
     @patch(
         "inuits_policy_based_auth.authorization.base_authorization_policy.BaseAuthorizationPolicy.__abstractmethods__",

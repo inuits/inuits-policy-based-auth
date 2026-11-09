@@ -102,6 +102,25 @@ class TestPolicyFactory:
         assert response_body["bag"] == {}
         assert response_body["access_restrictions"]["filters"] is None
 
+    def test_apply_policies_reuses_user_context_from_authenticate(self):
+        payload = helpers.get_payload([self.REGULAR_USER_ROLE])
+        headers = custom_token.get_authorization_header(payload)
+
+        response = requests.patch(self.ENDPOINT, headers=headers)
+        response_body = response.json()
+
+        assert response.status_code == 200
+        assert response_body["number_of_authenticate_calls"] == 1
+        assert response_body["number_of_apply_policies_calls"] == 1
+        assert "read-entity" in response_body["x_tenant"]["scopes"]
+        assert response_body["bag"] == {}
+        assert response_body["access_restrictions"]["filters"] is None
+
+    def test_apply_policies_with_user_context_getter_returns_401_without_token(self):
+        response = requests.patch(self.ENDPOINT)
+
+        assert response.status_code == 401
+
     @classmethod
     def teardown_class(cls):
         flask_process.stop()
